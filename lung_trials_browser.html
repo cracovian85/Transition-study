@@ -1,849 +1,502 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lung Cancer Targeted Therapy Trials Browser</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bg-dark: #0a0e1a;
-            --bg-card: #131829;
-            --bg-hover: #1a1f35;
-            --accent-teal: #14f195;
-            --accent-purple: #9333ea;
-            --accent-blue: #3b82f6;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-dim: #64748b;
-            --border: #1e293b;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-        }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Animated background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(147, 51, 234, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(20, 241, 149, 0.05) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        #root {
-            position: relative;
-            z-index: 1;
-        }
-
-        .app-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Header */
-        .header {
-            margin-bottom: 3rem;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 2rem;
-        }
-
-        .header h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 3rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--accent-teal), var(--accent-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
-        }
-
-        .header p {
-            font-size: 1.125rem;
-            color: var(--text-secondary);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 500;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-            margin-top: 0.25rem;
-        }
-
-        /* Filters */
-        .filters {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .filter-group {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .filter-label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .search-input, .select-input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-        }
-
-        .search-input:focus, .select-input:focus {
-            outline: none;
-            border-color: var(--accent-teal);
-            box-shadow: 0 0 0 3px rgba(20, 241, 149, 0.1);
-        }
-
-        .filter-pills {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .pill {
-            padding: 0.5rem 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .pill:hover {
-            background: var(--bg-hover);
-            border-color: var(--accent-teal);
-        }
-
-        .pill.active {
-            background: var(--accent-teal);
-            color: var(--bg-dark);
-            border-color: var(--accent-teal);
-            font-weight: 700;
-        }
-
-        /* Trial Grid */
-        .trials-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .trial-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .trial-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--accent-teal), var(--accent-purple));
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .trial-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--accent-teal);
-            box-shadow: 0 20px 40px rgba(20, 241, 149, 0.1);
-        }
-
-        .trial-card:hover::before {
-            opacity: 1;
-        }
-
-        .trial-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 1rem;
-        }
-
-        .trial-nct {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.875rem;
-            font-weight: 700;
-            color: var(--accent-teal);
-        }
-
-        .trial-status {
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .status-completed {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-        }
-
-        .status-recruiting {
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--accent-blue);
-        }
-
-        .status-active {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning);
-        }
-
-        .status-terminated, .status-withdrawn {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-        }
-
-        .status-unknown {
-            background: rgba(100, 116, 139, 0.1);
-            color: var(--text-dim);
-        }
-
-        .trial-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .trial-acronym {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--accent-purple);
-            margin-bottom: 1rem;
-        }
-
-        .trial-meta {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .meta-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .meta-label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 500;
-        }
-
-        .meta-value {
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-top: 0.25rem;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .target-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            background: rgba(147, 51, 234, 0.1);
-            color: var(--accent-purple);
-            border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .results-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem;
-            background: var(--bg-hover);
-            border-radius: 8px;
-            margin-top: 1rem;
-            border: 1px solid var(--border);
-        }
-
-        .results-badge.has-results {
-            background: rgba(20, 241, 149, 0.05);
-            border-color: var(--accent-teal);
-        }
-
-        .results-icon {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-        }
-
-        .results-icon.success {
-            background: var(--success);
-            color: white;
-        }
-
-        .results-icon.empty {
-            background: var(--text-dim);
-            color: white;
-        }
-
-        .results-text {
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(10, 14, 26, 0.9);
-            backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 2rem;
-            animation: fadeIn 0.2s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            max-width: 800px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-header {
-            padding: 2rem;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            background: var(--bg-card);
-            z-index: 1;
-        }
-
-        .modal-close {
-            float: right;
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            line-height: 1;
-        }
-
-        .modal-close:hover {
-            color: var(--text-primary);
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .detail-section {
-            margin-bottom: 2rem;
-        }
-
-        .detail-section h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--accent-teal);
-        }
-
-        .detail-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-
-        .detail-item {
-            padding: 1rem;
-            background: var(--bg-hover);
-            border-radius: 8px;
-        }
-
-        .ctg-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            background: var(--accent-teal);
-            color: var(--bg-dark);
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 700;
-            transition: all 0.2s;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .ctg-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(20, 241, 149, 0.2);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--text-dim);
-        }
-
-        .empty-state-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .trials-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .detail-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NSCLC Phase 2 Targeted Therapy Trials</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Mono',monospace;background:#050d1a;color:#e2e8f0;min-height:100vh}
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+  @keyframes spin{to{transform:rotate(360deg)}}
+  input,select,button{font-family:inherit}
+  a{color:#38bdf8;text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  .header{background:linear-gradient(135deg,#07111f,#0b1a30);border-bottom:1px solid #162032;padding:24px 28px 18px}
+  .header-sub{font-size:10px;letter-spacing:.18em;color:#3b82f6;text-transform:uppercase;margin-bottom:6px;font-weight:600}
+  .header-title{font-size:clamp(16px,2.5vw,22px);font-weight:600;color:#f0f9ff;margin-bottom:4px}
+  .header-desc{font-size:11px;color:#475569}
+
+  .body{padding:18px 28px 60px}
+
+  .stat-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .stat-card{background:#0a1628;border:1px solid #162032;border-radius:8px;padding:9px 14px;min-width:75px}
+  .stat-label{font-size:9px;color:#475569;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+  .stat-val{font-size:20px;font-weight:600}
+
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+  .chip{padding:3px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #162032;background:transparent;color:#475569;transition:all .15s}
+  .chip:hover{border-color:#334155}
+  .chip.active{border-color:#3b82f6;background:#0d2340;color:#7dd3fc}
+
+  .filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+  .filter-row input,.filter-row select{padding:7px 10px;border-radius:6px;border:1px solid #162032;background:#0a1628;color:#e2e8f0;font-size:12px;outline:none}
+  .filter-row input{flex:1 1 200px;min-width:0}
+  .filter-row select{cursor:pointer}
+  .btn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #162032;background:transparent;color:#475569;transition:all .15s}
+  .btn:hover{background:#0a1628}
+  .btn.active{border-color:#3b82f6;background:#0d2340;color:#7dd3fc}
+
+  .tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid #0f1e30}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  thead th{padding:8px 12px;text-align:left;background:#0b1628;color:#64748b;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid #1e293b;cursor:pointer;white-space:nowrap;user-select:none}
+  thead th:hover{color:#94a3b8}
+  thead th.sort-active{color:#7dd3fc}
+  tbody tr{border-bottom:1px solid #0a1425;cursor:pointer;transition:background .1s}
+  tbody tr:nth-child(odd){background:#050d1a}
+  tbody tr:nth-child(even){background:#07101e}
+  tbody tr:hover,tbody tr.expanded{background:#0c1e35}
+  td{padding:8px 12px;vertical-align:middle}
+  .exp-td{padding:12px 16px;background:#07111f;border-top:1px solid #162032}
+  .exp-title{font-size:12px;color:#94a3b8;line-height:1.65;margin-bottom:8px}
+  .exp-summary{font-size:11px;color:#475569;line-height:1.6;margin-bottom:10px;border-left:2px solid #162032;padding-left:10px}
+  .exp-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;align-items:center}
+
+  .badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.04em;white-space:nowrap}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+  .card{background:#07101e;border:1px solid #162032;border-radius:10px;padding:12px 14px;transition:border-color .15s}
+  .card:hover{border-color:#3b82f6}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;gap:6px}
+  .card-nct{font-size:10px;color:#38bdf8;font-weight:600;margin-bottom:2px}
+  .card-drug{font-size:13px;color:#f0f9ff;font-weight:600}
+  .card-title{font-size:11px;color:#64748b;line-height:1.55;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+  .card-foot{display:flex;justify-content:space-between;align-items:center;font-size:10px;border-top:1px solid #162032;padding-top:7px}
+  .card-sponsor{color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%}
+
+  .progress-bar{display:flex;align-items:center;gap:10px;background:#0a1628;border:1px solid #162032;border-radius:8px;padding:10px 14px;margin-bottom:12px}
+  .progress-track{flex:1;height:3px;background:#162032;border-radius:2px;max-width:180px}
+  .progress-fill{height:100%;background:#3b82f6;border-radius:2px;transition:width .4s}
+
+  .footer{margin-top:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:10px;color:#1e3a5f}
+</style>
 </head>
 <body>
-    <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+<div class="header">
+  <div class="header-sub">ClinicalTrials.gov · Phase II · Live Data</div>
+  <div class="header-title">NSCLC + Basket · Mutation-Targeted · Advanced / Metastatic</div>
+  <div class="header-desc">All statuses · orally available &amp; biologic targeted agents · specific genetic mutations</div>
+</div>
 
-        // Trial data embedded
-        const TRIALS_DATA = [{"nct": "NCT00874419", "title": "A Randomized, Open-label, Multi-center Phase III Study of Erlotinib Versus Gemcitabine/Carboplatin in Chemo-naive Stage ", "acronym": "ML20981", "target": "EGFR", "sponsor": "Tongji University", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2008-08", "enrollment": 165, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT00816868", "phase1NCT": "NCT00738335"}, {"nct": "NCT03058094", "title": "A Phase III, Open-Label, Randomized Multicenter Study to Compare AC0010 and Pemetrexed/Cisplatin in Patients With Advanc", "acronym": "AC0010", "target": "EGFR", "sponsor": "Hangzhou ACEA Pharmaceutical Research Co., Ltd.", "status": "WITHDRAWN", "fdaOutcome": "Failed Trial (No Approval, Negative or Stopped)", "startDate": "2018-12", "enrollment": 0, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT03300115", "phase1NCT": "NCT01258634"}, {"nct": "NCT03856697", "title": "A Randomized Controlled, Double-blind, Multicenter, Phase III Clinical Study to Compare Efficacy and Safety of Abivertin", "acronym": "", "target": "EGFR", "sponsor": "Hangzhou ACEA Pharmaceutical Research Co., Ltd.", "status": "UNKNOWN", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2019-03", "enrollment": 0, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT01610336", "phase1NCT": "NCT02040064"}, {"nct": "NCT04447118", "title": "A Phase 3, Randomized, Open-label, Multicenter Study of the Efficacy and Safety of Pyrotinib Versus Docetaxel in Patient", "acronym": "PYRAMID-1", "target": "HER2", "sponsor": "Jiangsu HengRui Medicine Co., Ltd.", "status": "COMPLETED", "fdaOutcome": "Exploratory or Unlinked to FDA Approval", "startDate": "2020-09-11", "enrollment": 151, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT02834936", "phase1NCT": "NCT02364362"}, {"nct": "NCT01774721", "title": "ARCHER 1050: A RANDOMIZED, OPEN-LABEL, PHASE 3, EFFICACY AND SAFETY STUDY OF DACOMITINIB (PF-00299804) VERSUS GEFITINIB ", "acronym": "ARCHER 1050", "target": "EGFR", "sponsor": "Pfizer", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2013-05-09", "enrollment": 452, "hasResults": true, "resultsCount": 155, "aeCount": 720, "primaryOutcome": "Progression Free Survival (PFS) Based on Independent Radiologic Central (IRC) Re", "phase2NCT": "NCT01858389", "phase1NCT": "NCT00728390"}, {"nct": "NCT02152631", "title": "JUNIPER: A Randomized Phase 3 Study of Abemaciclib Plus Best Supportive Care Versus Erlotinib Plus Best Supportive Care ", "acronym": "JUNIPER", "target": "KRAS", "sponsor": "Eli Lilly and Company", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2014-10-03", "enrollment": 453, "hasResults": true, "resultsCount": 25, "aeCount": 322, "primaryOutcome": "Overall Survival (OS)", "phase2NCT": "NCT01900652", "phase1NCT": "NCT02079636"}, {"nct": "NCT06569420", "title": "A Randomized, Multicenter, Phase III Open-label Study: Efficacy and Safety of Comparing SAF-189s With Crizotinib in First", "acronym": "", "target": "ALK", "sponsor": "Luye Pharma Group Ltd.", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2024-09-09", "enrollment": 262, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT00949650", "phase1NCT": "NCT05117476"}, {"nct": "NCT05382728", "title": "A Phase III, Randomised, Double-blind, Multi-center Study to Assess the Efficacy and Safety of TY-9591 Tablets Versus Os", "acronym": "", "target": "EGFR", "sponsor": "TYK Medicines, Inc", "status": "RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2024-01-08", "enrollment": 555, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT05146219", "phase1NCT": "NCT06255951"}, {"nct": "NCT02588261", "title": "An Open-label, Randomized Phase 3 Efficacy Study of ASP8273 vs Erlotinib or Gefitinib in First-line Treatment of Patient", "acronym": "", "target": "EGFR", "sponsor": "Astellas Pharma Global Development, Inc.", "status": "TERMINATED", "fdaOutcome": "Failed Trial (No Approval, Negative or Stopped)", "startDate": "2016-04-26", "enrollment": 452, "hasResults": true, "resultsCount": 217, "aeCount": 830, "primaryOutcome": "Progression-free Survival (PFS) by Independent Radiology Review (IRR)", "phase2NCT": "NCT02369484", "phase1NCT": "NCT01877694"}, {"nct": "NCT03529084", "title": "A Randomized, Open-label, Phase III Study of Single Agent Nazartinib Versus Investigator's Choice (Erlotinib or Gefitini", "acronym": "", "target": "EGFR", "sponsor": "Taiho Oncology, Inc.", "status": "WITHDRAWN", "fdaOutcome": "Failed Trial (No Approval, Negative or Stopped)", "startDate": "2019-08-13", "enrollment": 0, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT03574402", "phase1NCT": "NCT01000025"}, {"nct": "NCT04923945", "title": "A Randomized, Open-label, Phase 3 Study to Evaluate Efficacy and Safety of HMPL-453 Versus Chemotherapy in Patients With", "acronym": "", "target": "MET", "sponsor": "Hutchison Medipharma Limited", "status": "COMPLETED", "fdaOutcome": "Exploratory or Unlinked to FDA Approval", "startDate": "2021-07-14", "enrollment": 226, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT02897479", "phase1NCT": "NCT02374645"}, {"nct": "NCT06908993", "title": "Crizotinib Versus Chemotherapy (Pemetrexed/Platinum) as First-line Treatment in Patients With Advanced Non-small Cell Lu", "acronym": "COMET", "target": "MET", "sponsor": "Intergroupe Francophone de Cancerologie Thoracique", "status": "RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2025-06", "enrollment": 164, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT00198432", "phase1NCT": "NCT01220284"}, {"nct": "NCT04685135", "title": "A Phase 3 Randomized, Open-Label Trial Evaluating the Efficacy and Safety of Ensartinib Versus Crizotinib in Anaplastic ", "acronym": "", "target": "ALK", "sponsor": "Xcovery Holding Company, LLC", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2021-02-26", "enrollment": 288, "hasResults": true, "resultsCount": 221, "aeCount": 262, "primaryOutcome": "Progression-Free Survival (PFS) According to Blinded Independent Central Review (BI", "phase2NCT": "NCT02147990", "phase1NCT": "NCT01625234"}, {"nct": "NCT05132075", "title": "A Phase III, Randomized, Open-label, Multicenter Study to Compare the Efficacy and Safety of Ensartinib Versus Alectinib", "acronym": "", "target": "ALK", "sponsor": "Xcovery Holding Company, LLC", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2022-12-14", "enrollment": 332, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT02147990", "phase1NCT": "NCT01625234"}, {"nct": "NCT06151574", "title": "A Phase III, Multicenter, Randomised, Open-label, 2-arm Study to Evaluate the Efficacy and Safety of Zongertinib Versus ", "acronym": "", "target": "HER2", "sponsor": "Boehringer Ingelheim", "status": "RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2024-07-01", "enrollment": 330, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT00263016", "phase1NCT": "NCT00107250"}, {"nct": "NCT01719536", "title": "A Multicenter Randomized Open-label Controlled Study of Icotinib Versus Gefitinib in Treating Advanced Non-small Cell Lu", "acronym": "Convince", "target": "EGFR", "sponsor": "Betta Pharmaceuticals Co., Ltd.", "status": "COMPLETED", "fdaOutcome": "Exploratory or Unlinked to FDA Approval", "startDate": "2012-11", "enrollment": 285, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT01843647", "phase1NCT": "NCT00107250"}, {"nct": "NCT02075840", "title": "A Multi-Center, Randomized, Open-Label Phase 3 Study of Crizotinib Versus Pemetrexed Plus Cisplatin or Carboplatin in Pr", "acronym": "", "target": "ALK", "sponsor": "Pfizer", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2014-03-18", "enrollment": 343, "hasResults": true, "resultsCount": 137, "aeCount": 266, "primaryOutcome": "Progression Free Survival (PFS)", "phase2NCT": "NCT00932451", "phase1NCT": "NCT00585195"}, {"nct": "NCT01154140", "title": "Comparison of Crizotinib With Chemotherapy in Asian Patients With Advanced ALK-Positive Non-small Cell Lung Carcinoma (P", "acronym": "PROFILE 1029", "target": "ALK", "sponsor": "Pfizer", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2011-03", "enrollment": 207, "hasResults": true, "resultsCount": 129, "aeCount": 228, "primaryOutcome": "Progression-Free Survival (PFS)", "phase2NCT": "NCT00932451", "phase1NCT": "NCT00585195"}, {"nct": "NCT00404924", "title": "Crizotinib Versus Standard Chemotherapy in Treating Patients With Advanced Non-Small Cell Lung Cancer Who Have an Anapl", "acronym": "PROFILE 1007", "target": "ALK", "sponsor": "Pfizer", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2008-09", "enrollment": 347, "hasResults": true, "resultsCount": 134, "aeCount": 725, "primaryOutcome": "Progression-Free Survival (PFS)", "phase2NCT": "NCT00932451", "phase1NCT": "NCT00585195"}, {"nct": "NCT00949650", "title": "Study of the Efficacy and Safety of Crizotinib in Patients With Advanced Non-Small Cell Lung Cancer With a Confirmed Mu", "acronym": "PROFILE 1014", "target": "ALK", "sponsor": "Pfizer", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2010-07", "enrollment": 343, "hasResults": true, "resultsCount": 184, "aeCount": 322, "primaryOutcome": "Progression-Free Survival (PFS)", "phase2NCT": "NCT00932451", "phase1NCT": "NCT00585195"}, {"nct": "NCT02296125", "title": "A Randomized, Open-Label, Phase 3 Trial of ASP8273 Versus Erlotinib or Gefitinib in First-Line Treatment of Patients Wit", "acronym": "", "target": "EGFR", "sponsor": "Astellas Pharma Global Development, Inc.", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2015-03-17", "enrollment": 453, "hasResults": true, "resultsCount": 266, "aeCount": 952, "primaryOutcome": "Progression-free Survival (PFS) by Independent Radiology Review (IRR)", "phase2NCT": "NCT02369484", "phase1NCT": "NCT01877694"}, {"nct": "NCT02767804", "title": "A Randomized, Open-Label Phase 3 Study of Brigatinib Versus Alectinib in Patients With Advanced ALK+ NSCLC", "acronym": "", "target": "ALK", "sponsor": "Takeda", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2017-04-03", "enrollment": 275, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT01449461", "phase1NCT": "NCT01449461"}, {"nct": "NCT02737501", "title": "A Randomized, Multicenter, Open-Label, Phase 3 Study to Evaluate the Efficacy and Safety of Alectinib Versus Crizotinib ", "acronym": "ALEX", "target": "ALK", "sponsor": "Hoffmann-La Roche", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2016-06-20", "enrollment": 303, "hasResults": true, "resultsCount": 159, "aeCount": 218, "primaryOutcome": "Percentage of Participants With Investigator-Assessed Progression Free Survival (P", "phase2NCT": "NCT00996840", "phase1NCT": "NCT01115803"}, {"nct": "NCT02332512", "title": "A Multicenter, Randomized, Open-label, Phase 3 Study to Evaluate the Efficacy and Safety of Alectinib Versus Chemotherap", "acronym": "ALESIA", "target": "ALK", "sponsor": "Hoffmann-La Roche", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2015-02-18", "enrollment": 187, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT00996840", "phase1NCT": "NCT01115803"}, {"nct": "NCT03052608", "title": "A Phase 3, Randomized, Open-Label Study of Brigatinib Versus Crizotinib in Patients With Anaplastic Lymphoma Kinase (ALK", "acronym": "ALTA-1L", "target": "ALK", "sponsor": "Takeda", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2017-06-21", "enrollment": 275, "hasResults": true, "resultsCount": 233, "aeCount": 278, "primaryOutcome": "Progression-Free Survival (PFS) as Assessed by Blinded Independent Review Committee", "phase2NCT": "NCT01449461", "phase1NCT": "NCT01449461"}, {"nct": "NCT04603807", "title": "A Randomized, Open-label, Multicenter, Phase 3 Study of the Efficacy and Safety of Ensartinib Versus Lorlatinib as First", "acronym": "", "target": "ALK", "sponsor": "Xcovery Holding Company, LLC", "status": "RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2023-02-08", "enrollment": 362, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT02147990", "phase1NCT": "NCT01625234"}, {"nct": "NCT04427072", "title": "Phase III Study of Ensartinib vs. Crizotinib in First-line Anaplastic Lymphoma Kinase Positive (ALK+) Non-small Cell Lun", "acronym": "eXalt3", "target": "ALK", "sponsor": "Xcovery Holding Company, LLC", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2020-07-22", "enrollment": 290, "hasResults": true, "resultsCount": 182, "aeCount": 1656, "primaryOutcome": "Progression-free Survival (PFS) Per Blinded Independent Review Committee (BIRC)", "phase2NCT": "NCT02147990", "phase1NCT": "NCT01625234"}, {"nct": "NCT03849768", "title": "A Phase III, Randomized, Open-Label, Multicenter Study of Savolitinib and Osimertinib Versus Osimertinib Alone in Patien", "acronym": "", "target": "MET | ROS1", "sponsor": "AstraZeneca", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2019-03-26", "enrollment": 454, "hasResults": true, "resultsCount": 172, "aeCount": 218, "primaryOutcome": "Progression Free Survival (PFS)", "phase2NCT": "NCT02143466", "phase1NCT": "NCT01773759"}, {"nct": "NCT04129502", "title": "Phase III Study of Brigatinib Versus Alectinib in First Line ALK+ Advanced NSCLC", "acronym": "", "target": "EGFR", "sponsor": "Takeda", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Exploratory or Unlinked to FDA Approval", "startDate": "2020-05-20", "enrollment": 270, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT04576208", "phase1NCT": "NCT00107250"}, {"nct": "NCT04206072", "title": "A Randomized, Open-label, Multicenter, Phase III Study of Icotinib Versus Gefitinib in Treating Advanced Non-small Cell ", "acronym": "", "target": "EGFR", "sponsor": "Betta Pharmaceuticals Co., Ltd.", "status": "COMPLETED", "fdaOutcome": "Exploratory or Unlinked to FDA Approval", "startDate": "2020-02-26", "enrollment": 314, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT02375022", "phase1NCT": ""}, {"nct": "NCT03866499", "title": "A Phase 3 Randomized, Open-Label Study of Osimertinib Versus Comparator EGFR-TKI as First-Line Treatment in Patients Wit", "acronym": "", "target": "EGFR", "sponsor": "AstraZeneca", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2019-05-24", "enrollment": 356, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT03812809", "phase1NCT": "NCT01147211"}, {"nct": "NCT04632758", "title": "A Global Phase III, Open-label, Randomised Study of Savolitinib + Osimertinib Versus Platinum-Based Doublet Chemotherapy", "acronym": "", "target": "EGFR | MET", "sponsor": "AstraZeneca", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2021-07-02", "enrollment": 458, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT02143466", "phase1NCT": "NCT01773759"}, {"nct": "NCT06564324", "title": "A Phase 3 Randomized, Open-label Trial Evaluating the Safety and Efficacy of Telisotuzumab Vedotin Compared to Docetaxel", "acronym": "", "target": "MET | ROS1", "sponsor": "AbbVie", "status": "RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2025-01-24", "enrollment": 550, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT02099058", "phase1NCT": "NCT01529307"}, {"nct": "NCT05378763", "title": "Study of AZD4547 Versus Docetaxel in Participants With Recurrent Fibroblast Growth Factor Receptor-positive Locally Advan", "acronym": "PINNACLE", "target": "HER2", "sponsor": "AstraZeneca", "status": "SUSPENDED", "fdaOutcome": "Failed Trial (No Approval, Negative or Stopped)", "startDate": "2022-12-16", "enrollment": 0, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT03318939", "phase1NCT": "NCT01497925"}, {"nct": "NCT05767892", "title": "A Randomized, Open-Label, Multi-Center Phase III Study of BBT-207 in Combination With Lazertinib Versus Chemotherapy in P", "acronym": "", "target": "EGFR", "sponsor": "Bridge Biotherapeutics, Inc.", "status": "NOT_YET_RECRUITING", "fdaOutcome": "Exploratory or Unlinked to FDA Approval", "startDate": "2025-06", "enrollment": 337, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT04919811", "phase1NCT": "NCT03972202"}, {"nct": "NCT05668988", "title": "A Randomized, Open-label, Controlled, Multicenter Phase III Clinical Study Evaluating the Efficacy and Safety of Avaprit", "acronym": "", "target": "EGFR", "sponsor": "Jiangsu Hengrui Pharmaceuticals Co., Ltd.", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2023-03-29", "enrollment": 342, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT03574402", "phase1NCT": "NCT02913326"}, {"nct": "NCT06140836", "title": "A Phase 3, Randomized, Controlled, Open-label, Multicenter Study of Olomorasib Versus Docetaxel as Second-line Monothera", "acronym": "", "target": "KRAS", "sponsor": "Mirati Therapeutics Inc.", "status": "RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2024-03-19", "enrollment": 622, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT05006755", "phase1NCT": "NCT03785249"}, {"nct": "NCT06765109", "title": "Study of KN-8701 Versus Crizotinib in First-line Treatment of Participants With Advanced Anaplastic Lymphoma Kinase-posit", "acronym": "ALKAZAR", "target": "ALK", "sponsor": "Kullgen Pharmaceuticals", "status": "RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2024-12-30", "enrollment": 312, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT05384626", "phase1NCT": "NCT07140016"}, {"nct": "NCT04143607", "title": "Tepotinib Versus Chemotherapy in Previously Treated MET-Amplified Advanced NSCLC", "acronym": "", "target": "", "sponsor": "Merck KGaA, Darmstadt, Germany", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2020-03-02", "enrollment": 230, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT03502850", "phase1NCT": "NCT04360915"}, {"nct": "NCT06452277", "title": "An International, Randomized, Open-Label, Multi-center, Controlled Phase 3 Study to Assess the Efficacy and Safety of TDM", "acronym": "SOHO-02", "target": "HER2", "sponsor": "Daiichi Sankyo, Inc.", "status": "RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2024-08-20", "enrollment": 500, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT00263016", "phase1NCT": "NCT05537740"}, {"nct": "NCT06881784", "title": "A Randomized, Multi-Centre, Double-Blind, Placebo-Controlled Phase III Trial of Bevacizumab Plus Pemetrexed and Platinum", "acronym": "RASolve 301", "target": "", "sponsor": "Arcus Biosciences, Inc.", "status": "RECRUITING", "fdaOutcome": "Exploratory or Unlinked to FDA Approval", "startDate": "2024-08-30", "enrollment": 500, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT00263016", "phase1NCT": "NCT01497925"}, {"nct": "NCT00322452", "title": "Open Label, Randomised, Parallel Group, Multicentre, Ph III Study To Assess Efficacy, Safety & Tolerability Of Gefitinib", "acronym": "IPASS", "target": "", "sponsor": "AstraZeneca", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2006-03", "enrollment": 1329, "hasResults": true, "resultsCount": 67, "aeCount": 266, "primaryOutcome": "Progression-Free Survival (PFS)", "phase2NCT": "NCT00701558", "phase1NCT": "NCT00107250"}, {"nct": "NCT06497556", "title": "A Phase 3, Randomized, Open-Label, Multi-Center, 2-Arm Study to Compare the Efficacy and Safety of Adagrasib Versus Doce", "acronym": "Krascendo 1", "target": "KRAS", "sponsor": "Mirati Therapeutics Inc.", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2024-11-01", "enrollment": 510, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT04589845", "phase1NCT": "NCT06249282"}, {"nct": "NCT02186301", "title": "A Randomized, Open-Label, Multicenter, Phase III Study to Assess the Efficacy and Safety of Alectinib Versus Chemotherap", "acronym": "", "target": "ALK", "sponsor": "Hoffmann-La Roche", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2014-08-29", "enrollment": 207, "hasResults": true, "resultsCount": 152, "aeCount": 830, "primaryOutcome": "Percentage of Participants With Investigator-Assessed Progression-Free Survival (", "phase2NCT": "NCT00996840", "phase1NCT": "NCT01115803"}, {"nct": "NCT02322281", "title": "A Phase 3, Randomized, Multicenter, Open-Label Study to Compare the Efficacy and Safety of Ceritinib to Chemotherapy in ", "acronym": "ASCEND-5", "target": "ALK", "sponsor": "Novartis Pharmaceuticals", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2015-03-02", "enrollment": 231, "hasResults": true, "resultsCount": 168, "aeCount": 725, "primaryOutcome": "Progression Free Survival (PFS) by Blinded Independent Review Committee (BIRC)", "phase2NCT": "NCT01283516", "phase1NCT": "NCT00585195"}, {"nct": "NCT04303780", "title": "A Phase 3, Multicenter, Randomized, Open-Label Trial of Capmatinib Versus Docetaxel in Previously Treated Patients With ", "acronym": "GEOMETRY-E1", "target": "MET", "sponsor": "Novartis Pharmaceuticals", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2020-04-22", "enrollment": 370, "hasResults": true, "resultsCount": 133, "aeCount": 262, "primaryOutcome": "Progression-Free Survival (PFS) by Blinded Independent Review Committee (BIRC) - M", "phase2NCT": "NCT02414139", "phase1NCT": "NCT00854308"}, {"nct": "NCT01828099", "title": "A Phase 3, Randomized, Multicenter, Open-Label Study to Compare the Efficacy and Safety of Ceritinib (LDK378) to Chemothe", "acronym": "ASCEND-4", "target": "ALK", "sponsor": "Novartis Pharmaceuticals", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2013-06-18", "enrollment": 376, "hasResults": true, "resultsCount": 167, "aeCount": 1656, "primaryOutcome": "Progression Free Survival (PFS) by Blinded Independent Review Committee (BIRC)", "phase2NCT": "NCT01283516", "phase1NCT": "NCT00585195"}, {"nct": "NCT04248829", "title": "A Phase III Randomized, Open-Label Study of Capmatinib vs Docetaxel in Previously Treated Patients With Non-Small Cell L", "acronym": "GEOMETRY-G1", "target": "MET", "sponsor": "Novartis Pharmaceuticals", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2020-03-03", "enrollment": 134, "hasResults": true, "resultsCount": 90, "aeCount": 262, "primaryOutcome": "Progression Free Survival (PFS) by Blinded Independent Review Committee (BIRC) - M", "phase2NCT": "NCT02414139", "phase1NCT": "NCT00854308"}, {"nct": "NCT04239833", "title": "Osimertinib Versus Osimertinib Plus Platinum/Pemetrexed for Patients With EGFR-mutated Advanced Non-small Cell Lung Canc", "acronym": "", "target": "EGFR", "sponsor": "AstraZeneca", "status": "UNKNOWN", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2020-04", "enrollment": 557, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT01864681", "phase1NCT": "NCT03603262"}, {"nct": "NCT03653546", "title": "Phase III Study of Aumolertinib (HS-10296) Versus Gefitinib in Patients With Locally Advanced or Metastatic Non-small Ce", "acronym": "BM", "target": "EGFR", "sponsor": "Alpha Biopharma (Jiangsu) Co., Ltd.", "status": "COMPLETED", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2018-10-24", "enrollment": 429, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT00816868", "phase1NCT": "NCT07361705"}, {"nct": "NCT01121393", "title": "Randomized, Double-Blind, Placebo-Controlled, Multicenter Phase III Study Evaluating Afatinib Plus Best Supportive Care (", "acronym": "LUX-Lung 1", "target": "EGFR", "sponsor": "Boehringer Ingelheim", "status": "COMPLETED", "fdaOutcome": "Exploratory or Unlinked to FDA Approval", "startDate": "2010-06", "enrollment": 585, "hasResults": true, "resultsCount": 183, "aeCount": 228, "primaryOutcome": "Time From the Date of Randomization to the Date of Death (Overall Survival)", "phase2NCT": "NCT00701558", "phase1NCT": "NCT00107250"}, {"nct": "NCT03787992", "title": "A Phase 3 Randomized, Open-Label Study of Osimertinib Monotherapy Versus Platinum-pemetrexed Chemotherapy in the First-l", "acronym": "", "target": "EGFR", "sponsor": "AstraZeneca", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2019-04-05", "enrollment": 279, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT01864681", "phase1NCT": "NCT01147211"}, {"nct": "NCT06300177", "title": "A Phase III, Open-label, Randomized, Controlled, Multi-Center Study to Evaluate the Safety and Efficacy of Selpercatinib", "acronym": "", "target": "RET", "sponsor": "Eli Lilly and Company", "status": "RECRUITING", "fdaOutcome": "Exploratory or Unlinked to FDA Approval", "startDate": "2024-05-16", "enrollment": 400, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT02766335", "phase1NCT": "NCT01346540"}, {"nct": "NCT04009317", "title": "A Randomised, Phase III Study of Osimertinib Versus Platinum-Pemetrexed for Patients With EGFR Mutation Positive Advance", "acronym": "", "target": "EGFR", "sponsor": "AstraZeneca", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2019-09-25", "enrollment": 557, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT01864681", "phase1NCT": "NCT01147211"}, {"nct": "NCT05204628", "title": "A Phase 3 Multi-center, Open-label, Randomized Study of Ensartinib Versus Brigatinib in Patients With ALK-positive Advan", "acronym": "", "target": "ALK", "sponsor": "Xcovery Holding Company, LLC", "status": "UNKNOWN", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2023-02", "enrollment": 260, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT05482087", "phase1NCT": "NCT05055232"}, {"nct": "NCT06082635", "title": "A Randomized Open-Label Phase 3 Study Comparing TG-1801 Versus Crizotinib or Ceritinib in Patients With Anaplastic Lymph", "acronym": "TGRX-326", "target": "ALK", "sponsor": "TG Therapeutics, Inc.", "status": "ACTIVE_NOT_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2024-06-27", "enrollment": 364, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT05955391", "phase1NCT": "NCT06304805"}, {"nct": "NCT06281964", "title": "Randomized, Controlled, Phase III Clinical Trial Comparing Icotinib Versus Amivantamab Plus Chemotherapy in Advanced EGFR", "acronym": "KANNON-2", "target": "EGFR", "sponsor": "Betta Pharmaceuticals Co., Ltd.", "status": "ENROLLING_BY_INVITATION", "fdaOutcome": "Exploratory or Unlinked to FDA Approval", "startDate": "2024-05-06", "enrollment": 210, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT06343064", "phase1NCT": "NCT05347628"}, {"nct": "NCT06759857", "title": "A Randomized, Open-label, Active-controlled, Multicenter Phase III Study of Zilebesiran Versus Crizotinib in ALK-positiv", "acronym": "", "target": "ALK", "sponsor": "Luye Pharma Group Ltd.", "status": "RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2024-11-04", "enrollment": 262, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT00949650", "phase1NCT": "NCT05067972"}, {"nct": "NCT06031558", "title": "A Randomized, Open-label, Controlled, Multicenter Phase III Study Comparing Selpercatinib (LOXO-292) Versus Pemetrexed P", "acronym": "", "target": "RET", "sponsor": "Eli Lilly and Company", "status": "RECRUITING", "fdaOutcome": "Exploratory or Unlinked to FDA Approval", "startDate": "2024-02-02", "enrollment": 374, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT05278364", "phase1NCT": ""}, {"nct": "NCT06254599", "title": "A Randomized, Open-label, Controlled, Multicenter Phase 3 Study Comparing Brigatinib Versus Alectinib in Patients With A", "acronym": "", "target": "ALK", "sponsor": "Takeda", "status": "NOT_YET_RECRUITING", "fdaOutcome": "Supportive Trial for Approved Drug", "startDate": "2025-06", "enrollment": 366, "hasResults": false, "resultsCount": 0, "aeCount": 0, "primaryOutcome": "", "phase2NCT": "NCT05257512", "phase1NCT": ""}];
+<div class="body" id="app">
+  <div style="text-align:center;padding:60px 0;color:#475569">
+    <div style="font-size:11px;letter-spacing:.2em;color:#3b82f6;margin-bottom:10px;text-transform:uppercase">Querying ClinicalTrials.gov API</div>
+    <div style="font-size:28px;display:inline-block;animation:spin 1s linear infinite">⟳</div>
+    <div style="font-size:12px;margin-top:10px" id="prog-text">0 studies fetched…</div>
+    <div style="width:220px;height:3px;background:#0a1628;border-radius:2px;margin:12px auto 0">
+      <div id="prog-bar" style="width:0%;height:100%;background:#3b82f6;border-radius:2px;transition:width .4s"></div>
+    </div>
+    <div style="font-size:10px;color:#334155;margin-top:8px">Filtering for targeted agents &amp; advanced/metastatic criteria…</div>
+  </div>
+</div>
 
-        function TrialCard({ trial, onClick }) {
-            const getStatusClass = (status) => {
-                if (status.includes('COMPLETED')) return 'status-completed';
-                if (status.includes('RECRUITING')) return 'status-recruiting';
-                if (status.includes('ACTIVE')) return 'status-active';
-                if (status.includes('TERMINATED') || status.includes('WITHDRAWN')) return 'status-terminated';
-                return 'status-unknown';
-            };
+<script>
+// ── mutation → drug keywords ─────────────────────────────────────────────
+const DRUG_MUT={
+  "osimertinib":"EGFR","tagrisso":"EGFR","erlotinib":"EGFR","tarceva":"EGFR",
+  "gefitinib":"EGFR","iressa":"EGFR","afatinib":"EGFR","gilotrif":"EGFR",
+  "dacomitinib":"EGFR","vizimpro":"EGFR","lazertinib":"EGFR","leclaza":"EGFR",
+  "furmonertinib":"EGFR","aumolertinib":"EGFR","alflutinib":"EGFR",
+  "zipalertinib":"EGFR","sunvozertinib":"EGFR","mobocertinib":"EGFR",
+  "exkivity":"EGFR","blu-945":"EGFR","blu-701":"EGFR","rezivertinib":"EGFR",
+  "almonertinib":"EGFR","avitinib":"EGFR","azd9291":"EGFR","befotertinib":"EGFR",
+  "azd3759":"EGFR","hs-10296":"EGFR","nazartinib":"EGFR","tpx-0046":"RET",
+  "alectinib":"ALK","alecensa":"ALK","brigatinib":"ALK","alunbrig":"ALK",
+  "lorlatinib":"ALK","lorbrena":"ALK","ensartinib":"ALK","iruplinalkib":"ALK",
+  "envonalkib":"ALK","ceritinib":"ALK","zykadia":"ALK","tpx-0131":"ALK","nvl-655":"ALK",
+  "entrectinib":"NTRK","rozlytrek":"NTRK","larotrectinib":"NTRK","vitrakvi":"NTRK",
+  "selitrectinib":"NTRK","repotrectinib":"ROS1","augtyro":"ROS1","taletrectinib":"ROS1",
+  "crizotinib":"MET","xalkori":"MET","tepotinib":"MET","tepmetko":"MET",
+  "capmatinib":"MET","tabrecta":"MET","savolitinib":"MET","glumetinib":"MET",
+  "bozitinib":"MET","vebreltinib":"MET","elzovantinib":"MET","apl-101":"MET",
+  "selpercatinib":"RET","retevmo":"RET","loxo-292":"RET","pralsetinib":"RET","gavreto":"RET",
+  "sotorasib":"KRAS G12C","lumakras":"KRAS G12C","adagrasib":"KRAS G12C",
+  "krazati":"KRAS G12C","garsorasib":"KRAS G12C","glecirasib":"KRAS G12C",
+  "jdq443":"KRAS G12C","divarasib":"KRAS G12C","ly3537982":"KRAS G12C","d-1553":"KRAS G12C",
+  "zongertinib":"HER2","hernexeos":"HER2","pyrotinib":"HER2","poziotinib":"HER2",
+  "tucatinib":"HER2","tukysa":"HER2","neratinib":"HER2","nerlynx":"HER2",
+  "sevabertinib":"HER2","bay 2927088":"HER2","lapatinib":"HER2",
+  "trastuzumab deruxtecan":"HER2","t-dxd":"HER2","ds-8201":"HER2","enhertu":"HER2",
+  "patritumab":"HER3","patritumab deruxtecan":"HER3",
+  "dabrafenib":"BRAF","tafinlar":"BRAF","vemurafenib":"BRAF","encorafenib":"BRAF",
+  "trametinib":"MEK","mekinist":"MEK","cobimetinib":"MEK","binimetinib":"MEK",
+  "selumetinib":"MEK","koselugo":"MEK",
+  "erdafitinib":"FGFR","balversa":"FGFR","infigratinib":"FGFR","pemigatinib":"FGFR",
+  "pemazyre":"FGFR","futibatinib":"FGFR","lytgobi":"FGFR","azd4547":"FGFR",
+  "alpelisib":"PIK3CA","piqray":"PIK3CA","copanlisib":"PIK3CA","buparlisib":"PIK3CA",
+  "olaparib":"PARP","lynparza":"PARP","rucaparib":"PARP","niraparib":"PARP",
+  "zejula":"PARP","talazoparib":"PARP","veliparib":"PARP",
+  "belzutifan":"HIF2α","welireg":"HIF2α","mk-6482":"HIF2α",
+  "everolimus":"mTOR","afinitor":"mTOR","temsirolimus":"mTOR",
+  "palbociclib":"CDK4/6","ibrance":"CDK4/6","ribociclib":"CDK4/6",
+  "abemaciclib":"CDK4/6","verzenio":"CDK4/6",
+  "tazemetostat":"SMARCA4","tazverik":"SMARCA4",
+  "zenocutuzumab":"NRG1","seribantumab":"NRG1","zeno":"NRG1",
+  "mrtx1133":"KRAS G12D","rmc-9805":"KRAS G12D",
+  "apr-246":"TP53","eprenetapopt":"TP53",
+  "amivantamab":"EGFR/MET","rybrevant":"EGFR/MET",
+};
+const MUT_CLR={
+  "EGFR":"#f97316","ALK":"#a78bfa","ROS1":"#34d399","MET":"#60a5fa",
+  "RET":"#fb7185","KRAS G12C":"#eab308","HER2":"#e879f9","NTRK":"#2dd4bf",
+  "BRAF":"#f43f5e","MEK":"#f59e0b","FGFR":"#06b6d4","PIK3CA":"#84cc16",
+  "PARP":"#d946ef","mTOR":"#10b981","CDK4/6":"#0ea5e9","HIF2α":"#6366f1",
+  "SMARCA4":"#8b5cf6","NRG1":"#7c3aed","HER3":"#c084fc","KRAS G12D":"#ca8a04",
+  "TP53":"#ef4444","EGFR/MET":"#fb923c",
+};
+const STATUS_STYLE={
+  "RECRUITING":{label:"Recruiting",bg:"#052e16",tc:"#4ade80"},
+  "ACTIVE_NOT_RECRUITING":{label:"Active",bg:"#1c1400",tc:"#fbbf24"},
+  "COMPLETED":{label:"Completed",bg:"#0c1a3d",tc:"#818cf8"},
+  "NOT_YET_RECRUITING":{label:"Not yet",bg:"#082f49",tc:"#7dd3fc"},
+  "TERMINATED":{label:"Terminated",bg:"#2d0b0b",tc:"#f87171"},
+  "WITHDRAWN":{label:"Withdrawn",bg:"#2d0b0b",tc:"#f87171"},
+  "SUSPENDED":{label:"Suspended",bg:"#1c1400",tc:"#fbbf24"},
+  "UNKNOWN":{label:"Unknown",bg:"#1e293b",tc:"#64748b"},
+};
+const ADV_KW=["advanced","metastatic","stage iii","stage iv","stage 3","stage 4",
+  "locally advanced","unresectable","recurrent","relapsed","refractory",
+  "pretreated","second-line","third-line","first-line","progressive disease",
+  "systemic therapy","treatment-naive","1l ","2l "];
+const BASKET_KW=["basket","tumor agnostic","tissue agnostic","agnostic",
+  "solid tumor","solid tumour","multiple tumor","pan-tumor","biomarker-selected"];
+const NSCLC_KW=["non-small cell lung","nsclc","non small cell lung",
+  "lung adenocarcinoma","squamous cell lung","lung carcinoma","lung cancer"];
 
-            return (
-                <div className="trial-card" onClick={() => onClick(trial)}>
-                    <div className="trial-header">
-                        <div className="trial-nct">{trial.nct}</div>
-                        <div className={`trial-status ${getStatusClass(trial.status)}`}>
-                            {trial.status.replace(/_/g, ' ')}
-                        </div>
-                    </div>
-                    
-                    {trial.acronym && (
-                        <div className="trial-acronym">{trial.acronym}</div>
-                    )}
-                    
-                    <div className="trial-title">{trial.title}</div>
-                    
-                    <div className="trial-meta">
-                        <div className="meta-item">
-                            <div className="meta-label">Target</div>
-                            <div className="meta-value">
-                                <span className="target-badge">{trial.target || 'Unknown'}</span>
-                            </div>
-                        </div>
-                        <div className="meta-item">
-                            <div className="meta-label">Enrollment</div>
-                            <div className="meta-value">{trial.enrollment || 'N/A'}</div>
-                        </div>
-                        <div className="meta-item">
-                            <div className="meta-label">Start Date</div>
-                            <div className="meta-value">{trial.startDate}</div>
-                        </div>
-                        <div className="meta-item">
-                            <div className="meta-label">Sponsor</div>
-                            <div className="meta-value" style={{fontSize: '0.75rem'}}>
-                                {trial.sponsor.split(' ')[0]}...
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div className={`results-badge ${trial.hasResults ? 'has-results' : ''}`}>
-                        <div className={`results-icon ${trial.hasResults ? 'success' : 'empty'}`}>
-                            {trial.hasResults ? '✓' : '○'}
-                        </div>
-                        <div className="results-text">
-                            {trial.hasResults 
-                                ? `${trial.resultsCount} outcomes, ${trial.aeCount} AE records`
-                                : 'No results posted on CTG.gov'
-                            }
-                        </div>
-                    </div>
-                </div>
-            );
-        }
+function detectMut(s){
+  const p=s.protocolSection;
+  const iv=p?.armsInterventionsModule?.interventions||[];
+  const all=[
+    p?.identificationModule?.briefTitle||"",
+    p?.identificationModule?.officialTitle||"",
+    (p?.conditionsModule?.conditions||[]).join(" "),
+    (p?.conditionsModule?.keywords||[]).join(" "),
+    (p?.descriptionModule?.briefSummary||"").slice(0,500)
+  ].join(" ").toLowerCase();
+  for(const i of iv){
+    if(!["DRUG","BIOLOGICAL","COMBINATION_PRODUCT","GENETIC"].includes(i.type))continue;
+    const n=(i.name||"").toLowerCase();
+    for(const[k,m]of Object.entries(DRUG_MUT)){if(n.includes(k))return{mutation:m,drug:i.name};}
+  }
+  for(const[k,m]of Object.entries(DRUG_MUT)){
+    if(all.includes(k))return{mutation:m,drug:k.charAt(0).toUpperCase()+k.slice(1)};
+  }
+  return null;
+}
+function isAdv(s){
+  const p=s.protocolSection;
+  const all=[
+    p?.identificationModule?.briefTitle||"",
+    p?.identificationModule?.officialTitle||"",
+    (p?.descriptionModule?.briefSummary||"").slice(0,600),
+    (p?.conditionsModule?.conditions||[]).join(" "),
+    (p?.eligibilityModule?.eligibilityCriteria||"").slice(0,800)
+  ].join(" ").toLowerCase();
+  return ADV_KW.some(k=>all.includes(k));
+}
+function isNSCLCorBasket(s){
+  const p=s.protocolSection;
+  const all=[
+    p?.identificationModule?.briefTitle||"",
+    p?.identificationModule?.officialTitle||"",
+    (p?.conditionsModule?.conditions||[]).join(" "),
+    (p?.conditionsModule?.keywords||[]).join(" "),
+    (p?.descriptionModule?.briefSummary||"").slice(0,400)
+  ].join(" ").toLowerCase();
+  return NSCLC_KW.some(t=>all.includes(t))||BASKET_KW.some(t=>all.includes(t));
+}
+function trialType(s){
+  const p=s.protocolSection;
+  const all=[
+    p?.identificationModule?.briefTitle||"",
+    (p?.conditionsModule?.conditions||[]).join(" "),
+    (p?.conditionsModule?.keywords||[]).join(" "),
+    (p?.descriptionModule?.briefSummary||"").slice(0,400)
+  ].join(" ").toLowerCase();
+  return BASKET_KW.some(t=>all.includes(t))?"BASKET":"NSCLC";
+}
+function armType(s,drug){
+  const arms=s.protocolSection?.armsInterventionsModule?.armGroups||[];
+  const dn=(drug||"").toLowerCase();
+  for(const a of arms){
+    if(a.type!=="EXPERIMENTAL")continue;
+    const iv=(a.interventionNames||[]).map(n=>n.toLowerCase());
+    if(iv.some(n=>n.includes(dn)||dn.includes(n.split(":").pop().trim())))
+      return iv.length===1?"MONO":"COMBO";
+  }
+  return "UNKNOWN";
+}
 
-        function TrialModal({ trial, onClose }) {
-            if (!trial) return null;
+// ── state ────────────────────────────────────────────────────────────────
+let studies=[],loading=false,page=0,totalFetched=0,done=false;
+let sk="status",sd="asc",fm="All",fs="All",ft="All",fa="All",fq="";
+let view="table",expanded=null;
 
-            return (
-                <div className="modal-overlay" onClick={onClose}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <button className="modal-close" onClick={onClose}>×</button>
-                            <h2>{trial.acronym || trial.nct}</h2>
-                            <div className="trial-nct" style={{marginTop: '0.5rem'}}>
-                                {trial.nct}
-                            </div>
-                        </div>
-                        
-                        <div className="modal-body">
-                            <div className="detail-section">
-                                <h3>Trial Overview</h3>
-                                <p style={{color: 'var(--text-secondary)', marginBottom: '1rem'}}>
-                                    {trial.title}
-                                </p>
-                                
-                                <div className="detail-grid">
-                                    <div className="detail-item">
-                                        <div className="meta-label">Molecular Target</div>
-                                        <div className="meta-value">{trial.target || 'Unknown'}</div>
-                                    </div>
-                                    <div className="detail-item">
-                                        <div className="meta-label">Status</div>
-                                        <div className="meta-value">{trial.status.replace(/_/g, ' ')}</div>
-                                    </div>
-                                    <div className="detail-item">
-                                        <div className="meta-label">Sponsor</div>
-                                        <div className="meta-value" style={{fontSize: '0.875rem'}}>
-                                            {trial.sponsor}
-                                        </div>
-                                    </div>
-                                    <div className="detail-item">
-                                        <div className="meta-label">FDA Outcome</div>
-                                        <div className="meta-value" style={{fontSize: '0.875rem'}}>
-                                            {trial.fdaOutcome}
-                                        </div>
-                                    </div>
-                                    <div className="detail-item">
-                                        <div className="meta-label">Start Date</div>
-                                        <div className="meta-value">{trial.startDate}</div>
-                                    </div>
-                                    <div className="detail-item">
-                                        <div className="meta-label">Enrollment</div>
-                                        <div className="meta-value">{trial.enrollment} patients</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {trial.hasResults && (
-                                <div className="detail-section">
-                                    <h3>Posted Results</h3>
-                                    <div className="detail-grid">
-                                        <div className="detail-item">
-                                            <div className="meta-label">Outcome Measures</div>
-                                            <div className="meta-value">{trial.resultsCount}</div>
-                                        </div>
-                                        <div className="detail-item">
-                                            <div className="meta-label">Adverse Events</div>
-                                            <div className="meta-value">{trial.aeCount}</div>
-                                        </div>
-                                    </div>
-                                    {trial.primaryOutcome && (
-                                        <div style={{marginTop: '1rem', padding: '1rem', background: 'var(--bg-hover)', borderRadius: '8px'}}>
-                                            <div className="meta-label">Primary Outcome</div>
-                                            <div style={{marginTop: '0.5rem', color: 'var(--text-primary)'}}>
-                                                {trial.primaryOutcome}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                            
-                            <div className="detail-section">
-                                <h3>Phase Linkages</h3>
-                                <div className="detail-grid">
-                                    {trial.phase2NCT && (
-                                        <div className="detail-item">
-                                            <div className="meta-label">Phase 2</div>
-                                            <div className="meta-value">{trial.phase2NCT}</div>
-                                        </div>
-                                    )}
-                                    {trial.phase1NCT && (
-                                        <div className="detail-item">
-                                            <div className="meta-label">Phase 1</div>
-                                            <div className="meta-value">{trial.phase1NCT}</div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            
-                            <div style={{marginTop: '2rem'}}>
-                                <a 
-                                    href={`https://clinicaltrials.gov/study/${trial.nct}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="ctg-link"
-                                >
-                                    View on ClinicalTrials.gov →
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
+function counts(key){const m={};studies.forEach(s=>{m[s[key]]=(m[s[key]]||0)+1});return m;}
+function filter(){
+  let s=studies;
+  if(fm!=="All")s=s.filter(x=>x.mutation===fm);
+  if(fs!=="All")s=s.filter(x=>x.status===fs);
+  if(ft!=="All")s=s.filter(x=>x.trialType===ft);
+  if(fa!=="All")s=s.filter(x=>x.arm===fa);
+  if(fq){const q=fq.toLowerCase();s=s.filter(x=>[x.title,x.drug,x.nctId,x.sponsor,x.mutation].some(v=>v&&v.toLowerCase().includes(q)));}
+  return[...s].sort((a,b)=>{const av=a[sk]||"",bv=b[sk]||"";return sd==="asc"?String(av).localeCompare(String(bv)):String(bv).localeCompare(String(av));});
+}
 
-        function App() {
-            const [searchTerm, setSearchTerm] = useState('');
-            const [selectedTarget, setSelectedTarget] = useState('all');
-            const [selectedStatus, setSelectedStatus] = useState('all');
-            const [showResultsOnly, setShowResultsOnly] = useState(false);
-            const [selectedTrial, setSelectedTrial] = useState(null);
+async function loadMore(){
+  if(loading||done)return;
+  loading=true;render();
+  try{
+    const p=new URLSearchParams({
+      "query.cond":"non-small cell lung cancer",
+      "filter.phase":"PHASE2",
+      "aggFilters":"studyType:int",
+      "pageSize":"100","format":"json"
+    });
+    if(window._nextToken)p.append("pageToken",window._nextToken);
+    const res=await fetch("https://clinicaltrials.gov/api/v2/studies?"+p);
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const d=await res.json();
+    window._nextToken=d.nextPageToken;
+    if(!d.nextPageToken)done=true;
+    const raw=d.studies||[];
+    totalFetched+=raw.length;
+    const fresh=raw
+      .filter(s=>isNSCLCorBasket(s)&&isAdv(s))
+      .map(s=>{
+        const t=detectMut(s);if(!t)return null;
+        const p=s.protocolSection;
+        return{
+          nctId:p?.identificationModule?.nctId,
+          title:p?.identificationModule?.briefTitle,
+          status:p?.statusModule?.overallStatus||"UNKNOWN",
+          startDate:p?.statusModule?.startDateStruct?.date,
+          completionDate:p?.statusModule?.primaryCompletionDateStruct?.date,
+          sponsor:p?.sponsorCollaboratorsModule?.leadSponsor?.name,
+          mutation:t.mutation,drug:t.drug,
+          arm:armType(s,t.drug),
+          trialType:trialType(s),
+          enrollment:p?.designModule?.enrollmentInfo?.count,
+          summary:(p?.descriptionModule?.briefSummary||"").slice(0,280),
+        };
+      }).filter(Boolean);
+    studies=[...studies,...fresh];
+    page++;
+  }catch(e){console.error(e);done=true;}
+  loading=false;render();
+  if(!done&&page<8)setTimeout(loadMore,400);
+}
 
-            const targets = useMemo(() => {
-                const allTargets = [...new Set(TRIALS_DATA.map(t => t.target).filter(Boolean))];
-                return ['all', ...allTargets.sort()];
-            }, []);
+// ── render ───────────────────────────────────────────────────────────────
+function render(){
+  const filtered=filter();
+  const mc=counts("mutation"),sc=counts("status");
+  const app=document.getElementById("app");
+  app.innerHTML="";
 
-            const filteredTrials = useMemo(() => {
-                return TRIALS_DATA.filter(trial => {
-                    const matchesSearch = trial.nct.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        trial.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        (trial.acronym && trial.acronym.toLowerCase().includes(searchTerm.toLowerCase()));
-                    
-                    const matchesTarget = selectedTarget === 'all' || trial.target === selectedTarget;
-                    const matchesStatus = selectedStatus === 'all' || trial.status === selectedStatus;
-                    const matchesResults = !showResultsOnly || trial.hasResults;
+  // stat cards
+  const statRow=div("stat-row");
+  [{l:"Total",v:studies.length,c:"#e2e8f0"},
+   {l:"Recruiting",v:studies.filter(s=>s.status==="RECRUITING").length,c:"#4ade80"},
+   {l:"Basket",v:studies.filter(s=>s.trialType==="BASKET").length,c:"#a78bfa"},
+   {l:"Monotherapy",v:studies.filter(s=>s.arm==="MONO").length,c:"#38bdf8"},
+   {l:"Targets",v:Object.keys(mc).length,c:"#f97316"},
+  ].forEach(s=>{
+    const card=div("stat-card");
+    card.innerHTML=`<div class="stat-label">${s.l}</div><div class="stat-val" style="color:${s.c}">${s.v}</div>`;
+    statRow.appendChild(card);
+  });
+  app.appendChild(statRow);
 
-                    return matchesSearch && matchesTarget && matchesStatus && matchesResults;
-                });
-            }, [searchTerm, selectedTarget, selectedStatus, showResultsOnly]);
+  // progress
+  if(loading||(!done&&studies.length===0)){
+    const pb=div("progress-bar");
+    pb.innerHTML=`<span style="font-size:14px;animation:spin 1s linear infinite;display:inline-block">⟳</span>
+    <div style="flex:1">
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Searching ClinicalTrials.gov — ${totalFetched} raw studies scanned, ${studies.length} matched</div>
+      <div class="progress-track"><div class="progress-fill" style="width:${Math.min(95,page/8*100)}%"></div></div>
+    </div>`;
+    app.appendChild(pb);
+  }
 
-            const stats = useMemo(() => {
-                return {
-                    total: TRIALS_DATA.length,
-                    withResults: TRIALS_DATA.filter(t => t.hasResults).length,
-                    completed: TRIALS_DATA.filter(t => t.status === 'COMPLETED').length,
-                    recruiting: TRIALS_DATA.filter(t => t.status.includes('RECRUITING')).length
-                };
-            }, []);
+  // mutation chips
+  const chips=div("chips");
+  addChip(chips,"All · "+studies.length,fm==="All",true,()=>{fm="All";render();});
+  Object.entries(mc).sort((a,b)=>b[1]-a[1]).forEach(([mut,cnt])=>{
+    const col=MUT_CLR[mut]||"#94a3b8",active=fm===mut;
+    const btn=document.createElement("button");
+    btn.className="chip"+(active?" active":"");
+    btn.textContent=`${mut} · ${cnt}`;
+    if(active){btn.style.borderColor=col;btn.style.background=col+"20";btn.style.color=col;}
+    btn.onclick=()=>{fm=active?"All":mut;render();};
+    chips.appendChild(btn);
+  });
+  app.appendChild(chips);
 
-            return (
-                <div className="app-container">
-                    <div className="header">
-                        <h1>Lung Cancer Trials</h1>
-                        <p>60 Phase 3 Targeted Therapy Clinical Trials</p>
-                        
-                        <div className="stats-bar">
-                            <div className="stat-card">
-                                <div className="stat-label">Total Trials</div>
-                                <div className="stat-value" style={{color: 'var(--accent-teal)'}}>
-                                    {stats.total}
-                                </div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-label">With Results</div>
-                                <div className="stat-value" style={{color: 'var(--success)'}}>
-                                    {stats.withResults}
-                                </div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-label">Completed</div>
-                                <div className="stat-value" style={{color: 'var(--accent-purple)'}}>
-                                    {stats.completed}
-                                </div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-label">Recruiting</div>
-                                <div className="stat-value" style={{color: 'var(--accent-blue)'}}>
-                                    {stats.recruiting}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+  // filter row
+  const fr=div("filter-row");
+  const si=document.createElement("input");
+  si.type="text";si.placeholder="Search drug, NCT ID, mutation, sponsor…";
+  si.value=fq;si.oninput=e=>{fq=e.target.value;render();};
+  fr.appendChild(si);
 
-                    <div className="filters">
-                        <div className="filter-group" style={{flex: 2}}>
-                            <label className="filter-label">Search</label>
-                            <input
-                                type="text"
-                                className="search-input"
-                                placeholder="Search NCT, title, or acronym..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                        
-                        <div className="filter-group">
-                            <label className="filter-label">Target</label>
-                            <select 
-                                className="select-input"
-                                value={selectedTarget}
-                                onChange={(e) => setSelectedTarget(e.target.value)}
-                            >
-                                {targets.map(target => (
-                                    <option key={target} value={target}>
-                                        {target === 'all' ? 'All Targets' : target}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+  fr.appendChild(mkSel(fs,[["All","All statuses"],...Object.entries(sc).map(([s,n])=>[s,(STATUS_STYLE[s]?.label||s)+` (${n})`])],v=>{fs=v;render();}));
+  fr.appendChild(mkSel(ft,[["All","NSCLC + Basket"],["NSCLC","NSCLC only"],["BASKET","Basket only"]],v=>{ft=v;render();}));
+  fr.appendChild(mkSel(fa,[["All","All arms"],["MONO","Monotherapy"],["COMBO","Combination"]],v=>{fa=v;render();}));
 
-                    <div className="filters">
-                        <div className="filter-pills">
-                            <div 
-                                className={`pill ${!showResultsOnly ? 'active' : ''}`}
-                                onClick={() => setShowResultsOnly(false)}
-                            >
-                                All Trials
-                            </div>
-                            <div 
-                                className={`pill ${showResultsOnly ? 'active' : ''}`}
-                                onClick={() => setShowResultsOnly(true)}
-                            >
-                                With Results Only
-                            </div>
-                        </div>
-                    </div>
+  const vt=document.createElement("div");vt.style.display="flex";vt.style.gap="4px";vt.style.marginLeft="auto";
+  [["table","⊞ Table"],["cards","⊟ Cards"]].forEach(([vk,vl])=>{
+    const b=document.createElement("button");
+    b.className="btn"+(view===vk?" active":"");b.textContent=vl;
+    b.onclick=()=>{view=vk;render();};vt.appendChild(b);
+  });
+  fr.appendChild(vt);
+  const cnt=document.createElement("span");cnt.style.cssText="font-size:11px;color:#334155;white-space:nowrap";
+  cnt.innerHTML=`<b style="color:#7dd3fc">${filtered.length}</b> trials`;
+  fr.appendChild(cnt);
+  app.appendChild(fr);
 
-                    <div style={{marginBottom: '1rem', color: 'var(--text-dim)', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.875rem'}}>
-                        Showing {filteredTrials.length} of {stats.total} trials
-                    </div>
+  // load more btn
+  if(done&&studies.length>0){
+    const info=document.createElement("div");
+    info.style.cssText="font-size:11px;color:#334155;margin-bottom:10px";
+    info.textContent=`✓ Search complete — ${totalFetched} studies scanned, ${studies.length} matched`;
+    app.appendChild(info);
+  }
 
-                    {filteredTrials.length > 0 ? (
-                        <div className="trials-grid">
-                            {filteredTrials.map(trial => (
-                                <TrialCard 
-                                    key={trial.nct} 
-                                    trial={trial}
-                                    onClick={setSelectedTrial}
-                                />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="empty-state">
-                            <div className="empty-state-icon">🔍</div>
-                            <h3>No trials found</h3>
-                            <p>Try adjusting your filters or search terms</p>
-                        </div>
-                    )}
+  // TABLE VIEW
+  if(view==="table"){
+    const wrap=div("tbl-wrap");
+    const tbl=document.createElement("table");
+    const thead=document.createElement("thead"),hr=document.createElement("tr");
+    [["nctId","NCT ID"],["drug","Drug"],["mutation","Target"],["status","Status"],
+     ["trialType","Type"],["arm","Arm"],["sponsor","Sponsor"],["startDate","Start"],["completionDate","End"]
+    ].forEach(([k,l])=>{
+      const th=document.createElement("th");
+      th.className=sk===k?"sort-active":"";
+      th.textContent=l+(sk===k?(sd==="asc"?" ↑":" ↓"):" ⇅");
+      th.onclick=()=>{sk===k?(sd=sd==="asc"?"desc":"asc"):(sk=k,sd="asc");render();};
+      hr.appendChild(th);
+    });
+    const expTh=document.createElement("th");expTh.style.width="18px";hr.appendChild(expTh);
+    thead.appendChild(hr);tbl.appendChild(thead);
+    const tbody=document.createElement("tbody");
 
-                    {selectedTrial && (
-                        <TrialModal 
-                            trial={selectedTrial}
-                            onClose={() => setSelectedTrial(null)}
-                        />
-                    )}
-                </div>
-            );
-        }
+    if(!filtered.length){
+      const tr=document.createElement("tr"),td=document.createElement("td");
+      td.colSpan=10;td.style.cssText="padding:40px;text-align:center;color:#334155;font-size:13px";
+      td.textContent=loading?"Loading…":"No trials match your filters.";
+      tr.appendChild(td);tbody.appendChild(tr);
+    }
 
-        ReactDOM.render(<App />, document.getElementById('root'));
-    </script>
+    filtered.forEach(s=>{
+      const isE=expanded===s.nctId;
+      const row=document.createElement("tr");
+      if(isE)row.classList.add("expanded");
+      row.onclick=()=>{expanded=isE?null:s.nctId;render();};
+
+      const ss=STATUS_STYLE[s.status]||STATUS_STYLE.UNKNOWN;
+      const mc2=MUT_CLR[s.mutation]||"#94a3b8";
+
+      addTd(row,"color:#38bdf8;font-weight:600;white-space:nowrap",s.nctId||"—");
+      addTd(row,"color:#f0f9ff;font-weight:600;white-space:nowrap",s.drug||"—");
+      const mt=document.createElement("td");mt.style.padding="8px 12px";
+      mt.appendChild(mutBadge(s.mutation,mc2));row.appendChild(mt);
+      const st2=document.createElement("td");st2.style.padding="8px 12px";
+      st2.appendChild(statusBadge(ss.label,ss.bg,ss.tc));row.appendChild(st2);
+      const ttd=document.createElement("td");ttd.style.padding="8px 12px";
+      const tsp=document.createElement("span");tsp.style.cssText=`font-size:10px;font-weight:600;color:${s.trialType==="BASKET"?"#a78bfa":"#38bdf8"}`;
+      tsp.textContent=s.trialType==="BASKET"?"⬡ BASKET":"◆ NSCLC";ttd.appendChild(tsp);row.appendChild(ttd);
+      const atd=document.createElement("td");atd.style.padding="8px 12px";
+      const asp=document.createElement("span");asp.style.cssText=`font-size:10px;font-weight:600;color:${s.arm==="MONO"?"#4ade80":s.arm==="COMBO"?"#fbbf24":"#334155"}`;
+      asp.textContent=s.arm==="MONO"?"● MONO":s.arm==="COMBO"?"◐ COMBO":"—";atd.appendChild(asp);row.appendChild(atd);
+      addTd(row,"color:#94a3b8;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px",s.sponsor||"—");
+      addTd(row,"color:#475569;white-space:nowrap;font-size:11px",s.startDate||"—");
+      addTd(row,"color:#475569;white-space:nowrap;font-size:11px",s.completionDate||"—");
+      addTd(row,"text-align:center;color:#334155;font-size:11px",isE?"▲":"▼");
+      tbody.appendChild(row);
+
+      if(isE){
+        const er=document.createElement("tr"),ed=document.createElement("td");
+        ed.colSpan=10;ed.className="exp-td";
+        const titleDiv=document.createElement("div");titleDiv.className="exp-title";titleDiv.textContent=s.title||"";ed.appendChild(titleDiv);
+        if(s.summary){const sd2=document.createElement("div");sd2.className="exp-summary";sd2.textContent=s.summary+"…";ed.appendChild(sd2);}
+        const metaDiv=document.createElement("div");metaDiv.className="exp-meta";
+        if(s.enrollment){const en=document.createElement("span");en.style.color="#475569";en.innerHTML=`Enrollment: <b style="color:#7dd3fc">${s.enrollment}</b>`;metaDiv.appendChild(en);}
+        const a=document.createElement("a");a.href=`https://clinicaltrials.gov/study/${s.nctId}`;a.target="_blank";
+        a.textContent="View on ClinicalTrials.gov ↗";a.style.fontWeight="600";a.onclick=e=>e.stopPropagation();
+        metaDiv.appendChild(a);ed.appendChild(metaDiv);er.appendChild(ed);tbody.appendChild(er);
+      }
+    });
+    tbl.appendChild(tbody);wrap.appendChild(tbl);app.appendChild(wrap);
+  }
+
+  // CARDS VIEW
+  if(view==="cards"){
+    const grid=div("grid");
+    if(!filtered.length){
+      const empty=document.createElement("div");empty.style.cssText="grid-column:1/-1;text-align:center;padding:40px;color:#334155;font-size:13px";
+      empty.textContent=loading?"Loading…":"No trials match your filters.";grid.appendChild(empty);
+    }
+    filtered.forEach(s=>{
+      const col=MUT_CLR[s.mutation]||"#94a3b8";
+      const ss=STATUS_STYLE[s.status]||STATUS_STYLE.UNKNOWN;
+      const card=div("card");card.style.borderTopColor=col;
+      const top=div("card-top");
+      const info=document.createElement("div");
+      info.innerHTML=`<div class="card-nct">${s.nctId||""}</div><div class="card-drug">${s.drug||""}</div>`;
+      top.appendChild(info);
+      const mb=mutBadge(s.mutation,col);mb.style.flexShrink="0";top.appendChild(mb);
+      card.appendChild(top);
+      const titleDiv=div("card-title");titleDiv.textContent=s.title||"";card.appendChild(titleDiv);
+      const tags=div("card-tags");
+      tags.appendChild(statusBadge(ss.label,ss.bg,ss.tc));
+      const tsp=document.createElement("span");tsp.style.cssText=`font-size:10px;font-weight:600;color:${s.trialType==="BASKET"?"#a78bfa":"#38bdf8"}`;
+      tsp.textContent=s.trialType==="BASKET"?"⬡ BASKET":"◆ NSCLC";tags.appendChild(tsp);
+      if(s.arm!=="UNKNOWN"){const asp=document.createElement("span");asp.style.cssText=`font-size:10px;font-weight:600;color:${s.arm==="MONO"?"#4ade80":"#fbbf24"}`;asp.textContent=s.arm==="MONO"?"● MONO":"◐ COMBO";tags.appendChild(asp);}
+      card.appendChild(tags);
+      const foot=div("card-foot");
+      const spn=document.createElement("span");spn.className="card-sponsor";spn.textContent=s.sponsor||"";foot.appendChild(spn);
+      const a=document.createElement("a");a.href=`https://clinicaltrials.gov/study/${s.nctId}`;a.target="_blank";a.textContent="View ↗";foot.appendChild(a);
+      card.appendChild(foot);grid.appendChild(card);
+    });
+    app.appendChild(grid);
+  }
+
+  app.appendChild(Object.assign(document.createElement("div"),{
+    className:"footer",
+    innerHTML:`<span>Source: ClinicalTrials.gov API v2 · Live · ${new Date().toLocaleDateString()}</span><span>◆ NSCLC · ⬡ Basket · ● mono · ◐ combo</span>`
+  }));
+}
+
+// helpers
+function div(cls){const d=document.createElement("div");if(cls)d.className=cls;return d;}
+function addTd(row,style,text){const td=document.createElement("td");td.style.cssText="padding:8px 12px;"+style;td.textContent=text;row.appendChild(td);}
+function addChip(parent,text,active,isAll,onclick){
+  const btn=document.createElement("button");
+  btn.className="chip"+(active?" active":"");
+  btn.textContent=text;btn.onclick=onclick;parent.appendChild(btn);
+}
+function mkSel(val,opts,cb){
+  const sel=document.createElement("select");
+  opts.forEach(([v,l])=>{const o=document.createElement("option");o.value=v;o.textContent=l;if(v===val)o.selected=true;sel.appendChild(o);});
+  sel.onchange=e=>cb(e.target.value);return sel;
+}
+function mutBadge(mut,col){
+  col=col||MUT_CLR[mut]||"#94a3b8";
+  const sp=document.createElement("span");sp.className="badge";
+  sp.style.cssText=`background:${col}18;color:${col};border:1px solid ${col}40`;
+  sp.textContent=mut;return sp;
+}
+function statusBadge(label,bg,tc){
+  const sp=document.createElement("span");sp.className="badge";
+  sp.style.cssText=`background:${bg};color:${tc}`;sp.textContent=label;return sp;
+}
+
+loadMore();
+</script>
 </body>
 </html>

@@ -966,17 +966,23 @@ function renderNctTable() {
 }
 
 function exportNctCSV() {
+  // cleanVal: strip newlines/tabs that break CSV rows, collapse whitespace
+  const cv = v => String(v == null ? '' : v).replace(/[\r\n\t]+/g,' ').trim().replace(/"/g,'""');
+  // fmtLinks: pair NCT IDs with titles as "NCT123 | Title; NCT456 | Title"
+  const fmtNCTs   = links => links.map(l => cv(l.nctId||'')).join(' | ');
+  const fmtTitles = links => links.map(l => cv(l.title||'')).join(' | ');
   const h = ['NCT_ID','Title','Phases','Status','Is_Ph1_2','Is_Tumor_Agnostic','Treatment_Type',
     'Sponsor','Start','Primary_Completion','Enrollment','Experimental_Drugs','All_Drugs',
     'Phase1_NCTs','Phase1_Titles','Phase3_NCTs','Phase3_Titles'];
   const rows = nctRows.map(r => [
     r.nctId, r.title, r.phases, r.status,
     r.isPh12?'Yes':'No', r.isAgnostic?'Yes':'No', r.txType,
-    r.sponsor, r.start, r.compDate, r.enroll,
-    r.expDrugs.join('; '), r.allDrugs.join('; '),
-    r.p1Links.map(l=>l.nctId).join('; '), r.p1Links.map(l=>l.title).join('; '),
-    r.p3Links.map(l=>l.nctId).join('; '), r.p3Links.map(l=>l.title).join('; '),
-  ].map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
+    r.sponsor, r.start, r.compDate,
+    (r.enroll != null && typeof r.enroll !== 'object') ? r.enroll : '',
+    r.expDrugs.map(cv).join(' | '), r.allDrugs.map(cv).join(' | '),
+    fmtNCTs(r.p1Links),   fmtTitles(r.p1Links),
+    fmtNCTs(r.p3Links),   fmtTitles(r.p3Links),
+  ].map(v => `"${cv(v)}"`).join(','));
   dlCSV([h.join(','),...rows].join('\n'), `nct_lookup_${Date.now()}.csv`);
 }
 
@@ -1124,6 +1130,9 @@ function renderPagination() {
 }
 
 function exportCSV() {
+  const cv = v => String(v == null ? '' : v).replace(/[\r\n\t]+/g,' ').trim().replace(/"/g,'""');
+  const fmtNCTs   = links => links.map(l => cv(l.nctId||'')).join(' | ');
+  const fmtTitles = links => links.map(l => cv(l.title||'')).join(' | ');
   const h=['Phase2_NCT','Title','Phases','Status','Is_Ph1_2','Is_Tumor_Agnostic','Treatment_Type',
     'Sponsor','Start','Completion','Enrollment','Countries',
     'Experimental_Drugs','All_Drugs',
@@ -1131,11 +1140,13 @@ function exportCSV() {
   const rows=filtered.map(t=>[
     t.nctId,t.title,t.phases,t.status,
     t.isPh12?'Yes':'No',t.isAgnostic?'Yes':'No',t.txType,
-    t.sponsor,t.start,t.compDate,t.enroll,t.countries.join('; '),
-    t.expDrugs.join('; '),t.allDrugs.join('; '),
-    t.p1Links.map(l=>l.nctId).join('; '),t.p1Links.map(l=>l.title).join('; '),
-    t.p3Links.map(l=>l.nctId).join('; '),t.p3Links.map(l=>l.title).join('; '),
-  ].map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
+    t.sponsor,t.start,t.compDate,
+    (t.enroll != null && typeof t.enroll !== 'object') ? t.enroll : '',
+    t.countries.join(' | '),
+    t.expDrugs.map(cv).join(' | '),t.allDrugs.map(cv).join(' | '),
+    fmtNCTs(t.p1Links), fmtTitles(t.p1Links),
+    fmtNCTs(t.p3Links), fmtTitles(t.p3Links),
+  ].map(v => `"${cv(v)}"`)).join(','));
   dlCSV([h.join(','),...rows].join('\n'),`nsclc_trials_${Date.now()}.csv`);
 }
 

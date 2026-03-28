@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NSCLC Phase II → III Trial Browser</title>
+<title>NSCLC Phase I → II → III Trial Browser</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -12,6 +12,7 @@
   --green:#0b6e4f;--green-bg:#ecfdf5;--green-b:#6ee7b7;
   --blue:#1d4ed8;--blue-bg:#eff6ff;--blue-b:#93c5fd;
   --amber:#92400e;--amber-bg:#fef9ec;--amber-b:#fcd34d;
+  --violet:#5b21b6;--violet-bg:#f5f3ff;--violet-b:#ddd6fe;
   --gray:#6b7280;--gray-bg:#f9fafb;--gray-b:#d1d5db;
   --red:#b91c1c;--red-bg:#fef2f2;--red-b:#fca5a5;
   --accent:#0369a1;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;
@@ -21,16 +22,20 @@
   --shadow:0 1px 3px rgba(0,0,0,.07),0 4px 12px rgba(0,0,0,.04);
 }
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
-
-/* Header */
 .site-header{background:var(--navy);padding:0 40px;display:flex;align-items:center;gap:20px;height:60px;border-bottom:3px solid #0369a1}
 .logo span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:rgba(255,255,255,.4)}
 .logo strong{font-family:var(--serif);font-size:17px;color:#fff;font-weight:700}
 .hdiv{width:1px;height:28px;background:rgba(255,255,255,.15)}
 .hsub{font-size:12px;color:rgba(255,255,255,.5);font-style:italic}
 .hbadge{margin-left:auto;font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:rgba(255,255,255,.3)}
-
 .container{max-width:1200px;margin:0 auto;padding:28px 36px}
+
+/* Mode tabs */
+.mode-tabs{display:flex;margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
+.mode-tab{flex:1;padding:12px 20px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;border-right:1px solid var(--border)}
+.mode-tab:last-child{border-right:none}
+.mode-tab:hover{background:var(--bg);color:var(--navy)}
+.mode-tab.active{background:var(--navy);color:#fff}
 
 /* Search card */
 .search-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:24px 28px;box-shadow:var(--shadow);margin-bottom:20px}
@@ -38,13 +43,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .search-card p{font-size:12px;color:var(--muted);margin-bottom:18px}
 .section-label{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
 
+/* Pipeline flow */
+.pipeline-row{display:flex;align-items:center;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.pipe-node{font-family:var(--mono);font-size:10px;font-weight:600;padding:5px 14px;border-radius:4px;border:1.5px solid;white-space:nowrap}
+.pipe-node.ph1{background:var(--violet-bg);border-color:var(--violet-b);color:var(--violet)}
+.pipe-node.ph2{background:var(--blue-bg);border-color:var(--blue-b);color:var(--blue)}
+.pipe-node.ph3{background:var(--green-bg);border-color:var(--green-b);color:var(--green)}
+.pipe-arrow{color:var(--muted);font-size:15px;font-weight:300}
+
 /* Mutation chips */
 .mut-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
 .mut-btn{font-family:var(--mono);font-size:11px;padding:5px 13px;border:1.5px solid var(--border);border-radius:20px;background:#fff;color:var(--muted);cursor:pointer;transition:all .15s;user-select:none;font-weight:500}
 .mut-btn:hover{border-color:var(--accent);color:var(--accent)}
 .mut-btn.active{border-color:var(--navy);background:var(--navy);color:#fff}
 
-/* Controls row */
+/* Controls */
 .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .text-input{font-family:var(--mono);font-size:12px;padding:8px 13px;border:1.5px solid var(--border);border-radius:6px;color:var(--text);background:#fff;outline:none;width:220px;transition:border-color .15s}
 .text-input:focus{border-color:var(--accent)}
@@ -56,10 +69,47 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .clear-btn{font-family:var(--sans);font-size:12px;padding:8px 14px;background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:6px;cursor:pointer;transition:all .15s}
 .clear-btn:hover{color:var(--red);border-color:var(--red-b)}
 
+/* NCT search */
+.nct-search-area{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.nct-input-wrap{display:flex;flex-direction:column;gap:6px;flex:1;min-width:260px}
+.nct-input{font-family:var(--mono);font-size:14px;padding:10px 14px;border:1.5px solid var(--border);border-radius:6px;color:var(--text);background:#fff;outline:none;width:100%;transition:border-color .15s;letter-spacing:.05em}
+.nct-input:focus{border-color:var(--accent)}
+.nct-input::placeholder{color:#cbd5e1;letter-spacing:0;font-size:12px}
+.nct-hint{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.nct-run-btn{font-family:var(--sans);font-size:13px;font-weight:600;padding:10px 24px;background:var(--navy);color:#fff;border:none;border-radius:6px;cursor:pointer;transition:background .15s;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.nct-run-btn:hover:not(:disabled){background:var(--navy2)}
+.nct-run-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* NCT single result */
+.nct-result-card{background:var(--card);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}
+.nct-result-header{background:var(--navy);padding:16px 24px;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.nct-result-header h3{font-family:var(--serif);font-size:15px;color:#fff;flex:1;min-width:0;line-height:1.4}
+.nct-pipeline{padding:20px 24px 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.nct-section{border-radius:6px;padding:14px 16px;border:1px solid}
+.nct-section.ph1-sec{background:var(--violet-bg);border-color:var(--violet-b)}
+.nct-section.ph2-sec{background:var(--blue-bg);border-color:var(--blue-b)}
+.nct-section.ph3-sec{background:var(--green-bg);border-color:var(--green-b)}
+.nct-sec-title{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;font-weight:600;margin-bottom:10px}
+.ph1-sec .nct-sec-title{color:var(--violet)}
+.ph2-sec .nct-sec-title{color:var(--blue)}
+.ph3-sec .nct-sec-title{color:var(--green)}
+.link-item-nct{margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(0,0,0,.06)}
+.link-item-nct:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.link-item-nct .nct-a{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--accent);text-decoration:none}
+.link-item-nct .nct-a:hover{text-decoration:underline}
+.link-item-nct .li-title{font-size:11px;color:var(--text);line-height:1.4;margin-top:2px}
+.link-item-nct .li-status{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px}
+.sec-none{font-size:11px;color:var(--muted);font-style:italic}
+.nct-meta-row{padding:16px 24px;display:flex;gap:24px;flex-wrap:wrap;border-top:1px solid var(--border);margin-top:16px}
+.nct-meta-item .nct-meta-label{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.nct-meta-item .nct-meta-val{font-size:12px;color:var(--text);font-weight:500}
+.nct-drug-row{padding:0 24px 16px;display:flex;flex-direction:column;gap:6px}
+.nct-summary{margin:0 24px 20px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-size:12px;color:var(--text);line-height:1.65}
+
 /* Progress */
 .progress-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 24px;box-shadow:var(--shadow);margin-bottom:20px;display:none}
 .progress-card.visible{display:block}
-.steps{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+.steps{display:flex;align-items:center;flex-wrap:wrap}
 .step{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
 .step-num{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);background:#fff;color:var(--muted);font-family:var(--mono);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s}
 .step-num.active{border-color:var(--accent);background:var(--accent);color:#fff}
@@ -67,7 +117,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .step-lbl{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
 .step-lbl.active{color:var(--accent);font-weight:600}
 .step-lbl.done{color:var(--green)}
-.step-conn{width:28px;height:1px;background:var(--border);flex-shrink:0;margin:0 4px;transition:background .3s}
+.step-conn{width:24px;height:1px;background:var(--border);flex-shrink:0;margin:0 4px;transition:background .3s}
 .step-conn.done{background:var(--green)}
 .prog-note{font-family:var(--mono);font-size:11px;color:var(--accent);margin-top:10px;display:flex;align-items:center;gap:8px}
 .spinner{width:13px;height:13px;border:2px solid rgba(3,105,161,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
@@ -77,7 +127,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .error-box{background:var(--red-bg);border:1px solid var(--red-b);border-radius:8px;padding:12px 18px;font-family:var(--mono);font-size:12px;color:var(--red);margin-bottom:18px;display:none}
 .error-box.visible{display:block}
 
-/* Results header */
+/* Results */
 .results-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
 .results-bar h3{font-family:var(--serif);font-size:15px;color:var(--navy)}
 .count-chip{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--card);padding:3px 10px;border:1px solid var(--border);border-radius:10px}
@@ -93,58 +143,60 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .trial-card{background:var(--card);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);animation:fadeUp .25s ease both;transition:border-color .2s}
 .trial-card:hover{border-color:#c7d7e8}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
 .card-main{padding:16px 20px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}
 .card-left{min-width:0}
-.card-top{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap}
+.card-top{display:flex;align-items:center;gap:7px;margin-bottom:7px;flex-wrap:wrap}
 .nct-link{font-family:var(--mono);font-size:11px;color:var(--accent);text-decoration:none;font-weight:500;border-bottom:1px solid transparent;transition:border-color .15s}
 .nct-link:hover{border-bottom-color:var(--accent)}
-
-/* Badges */
 .badge{font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
-.b-target{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-b)}
 .b-completed{background:var(--green-bg);color:var(--green);border:1px solid var(--green-b)}
 .b-active{background:#eff6ff;color:#1d4ed8;border:1px solid #93c5fd}
 .b-recruiting{background:#fefce8;color:#854d0e;border:1px solid #fef08a}
 .b-terminated{background:var(--red-bg);color:var(--red);border:1px solid var(--red-b)}
 .b-withdrawn{background:var(--red-bg);color:#991b1b;border:1px solid var(--red-b)}
-.b-unknown{background:var(--gray-bg);color:var(--gray);border:1px solid var(--gray-b)}
 .b-notyetrec{background:#f5f3ff;color:#5b21b6;border:1px solid #ddd6fe}
 .b-other{background:var(--gray-bg);color:var(--gray);border:1px solid var(--gray-b)}
-
+.b-ph1{background:var(--violet-bg);color:var(--violet);border:1px solid var(--violet-b)}
+.b-ph3{background:var(--green-bg);color:var(--green);border:1px solid var(--green-b)}
 .card-title{font-size:13px;font-weight:500;color:var(--text);line-height:1.45;margin-bottom:8px}
 .card-meta{display:flex;gap:16px;flex-wrap:wrap}
 .meta-item{font-family:var(--mono);font-size:10px;color:var(--muted)}
 .meta-item strong{color:var(--text);font-weight:500}
-
-/* Phase 3 panel */
-.card-right{min-width:190px}
-.p3-box{background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:10px 12px;width:190px}
-.p3-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);margin-bottom:5px;text-transform:uppercase}
-.p3-arrow{color:var(--accent)}
-.p3-nct{font-family:var(--mono);font-size:10px;color:var(--accent);text-decoration:none;font-weight:500;display:block}
-.p3-nct:hover{text-decoration:underline}
-.p3-name{font-size:10px;color:var(--text);line-height:1.4;margin-top:2px}
-.p3-none{font-size:10px;color:var(--muted);font-style:italic}
-.p3-multi{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px}
-
-/* Expand toggle */
 .expand-toggle{font-family:var(--mono);font-size:9px;color:var(--muted);cursor:pointer;margin-top:8px;display:inline-flex;align-items:center;gap:4px;transition:color .15s;letter-spacing:.04em}
 .expand-toggle:hover{color:var(--accent)}
+
+/* Right panel */
+.card-right{display:flex;flex-direction:column;gap:8px;min-width:190px}
+.side-box{background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:9px 12px;width:190px}
+.side-box.ph1-box{border-color:var(--violet-b);background:var(--violet-bg)}
+.side-box.ph3-box{border-color:var(--green-b);background:var(--green-bg)}
+.side-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;font-weight:600}
+.ph1-box .side-label{color:var(--violet)}
+.ph3-box .side-label{color:var(--green)}
+.side-nct{font-family:var(--mono);font-size:10px;font-weight:500}
+.side-nct a{color:var(--accent);text-decoration:none}
+.side-nct a:hover{text-decoration:underline}
+.side-title{font-size:10px;color:var(--text);line-height:1.35;margin-top:2px}
+.side-none{font-size:10px;color:var(--muted);font-style:italic}
+.side-more{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px}
 
 /* Expanded detail */
 .card-detail{padding:0 20px 16px;display:none;border-top:1px dashed var(--border);background:#fafbfd;border-radius:0 0 8px 8px}
 .trial-card.expanded .card-detail{display:block}
-.detail-inner{padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.detail-inner{padding-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 .detail-box{background:#fff;border:1px solid var(--border);border-radius:6px;padding:12px 14px}
+.detail-box.ph1-detail{border-color:var(--violet-b);background:var(--violet-bg)}
+.detail-box.ph3-detail{border-color:var(--green-b);background:var(--green-bg)}
 .detail-box-title{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ph1-detail .detail-box-title{color:var(--violet)}
+.ph3-detail .detail-box-title{color:var(--green)}
 .detail-box p{font-size:12px;color:var(--text);line-height:1.6}
-.drug-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.drug-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
 .drug-tag{font-family:var(--mono);font-size:10px;padding:2px 8px;background:var(--blue-bg);border:1px solid var(--blue-b);border-radius:3px;color:var(--blue)}
-.p3-all-list{display:flex;flex-direction:column;gap:4px;margin-top:2px}
-.p3-all-item{font-size:11px;color:var(--text);display:flex;align-items:baseline;gap:5px}
-.p3-all-item a{font-family:var(--mono);font-size:10px;color:var(--accent);text-decoration:none}
-.p3-all-item a:hover{text-decoration:underline}
+.lnk-list{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+.lnk-item{font-size:11px;color:var(--text);display:flex;align-items:baseline;gap:5px}
+.lnk-item a{font-family:var(--mono);font-size:10px;color:var(--accent);text-decoration:none;white-space:nowrap}
+.lnk-item a:hover{text-decoration:underline}
 
 /* Pagination */
 .pagination{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:20px;font-family:var(--mono);font-size:11px;color:var(--muted)}
@@ -153,12 +205,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .page-btn:disabled{opacity:.3;cursor:not-allowed}
 
 /* Welcome */
-.welcome{text-align:center;padding:60px 20px;color:var(--muted)}
+.welcome{text-align:center;padding:56px 20px;color:var(--muted)}
 .welcome h2{font-family:var(--serif);font-size:22px;color:var(--navy);margin-bottom:10px}
 .welcome p{font-size:13px;max-width:500px;margin:0 auto}
-.welcome-chips{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin:24px auto;max-width:480px}
+.welcome-chips{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin:22px auto;max-width:480px}
 .w-chip{font-family:var(--mono);font-size:10px;padding:3px 10px;border:1px solid var(--border);border-radius:12px;color:var(--muted);animation:fadeIn .4s ease both}
-@keyframes fadeIn{to{opacity:1}from{opacity:0}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 @media(max-width:700px){
   .container{padding:16px}
@@ -166,7 +218,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
   .card-main{grid-template-columns:1fr}
   .card-right{display:none}
   .detail-inner{grid-template-columns:1fr}
-  .p3-box{width:100%}
+  .nct-pipeline{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -175,92 +227,147 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 <header class="site-header">
   <div class="logo">
     <span>Clinical Research</span>
-    <strong>NSCLC Phase II → III Trial Browser</strong>
+    <strong>NSCLC Phase I → II → III Trial Browser</strong>
   </div>
   <div class="hdiv"></div>
-  <div class="hsub">Targeted Therapy · Genetic Mutation Selection · ClinicalTrials.gov</div>
+  <div class="hsub">Targeted Therapy · Genetic Mutation Selection · ClinicalTrials.gov Live</div>
   <div class="hbadge">LIVE API</div>
 </header>
 
 <div class="container">
 
-  <!-- Search -->
-  <div class="search-card">
-    <h2>Select Mutation Target</h2>
-    <p>Retrieves Phase II NSCLC trials from ClinicalTrials.gov and looks up linked Phase III trials by drug name. No analysis — raw trial data only.</p>
+  <!-- Mode Tabs -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tabMutation" onclick="switchMode('mutation')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Mutation Search
+    </button>
+    <button class="mode-tab" id="tabNct" onclick="switchMode('nct')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      NCT Lookup
+    </button>
+  </div>
 
-    <div class="section-label">Predefined Targets</div>
-    <div class="mut-grid" id="mutGrid"></div>
+  <!-- ═══════════ MUTATION SEARCH ═══════════ -->
+  <div id="panelMutation">
+    <div class="search-card">
+      <h2>Select Mutation Target</h2>
+      <p>Fetches Phase II NSCLC trials, then automatically traces Phase I predecessor studies and Phase III successor trials by drug name.</p>
+      <div class="pipeline-row">
+        <div class="pipe-node ph1">Phase I</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-node ph2">Phase II  (primary)</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-node ph3">Phase III</div>
+      </div>
+      <div class="section-label">Predefined Targets</div>
+      <div class="mut-grid" id="mutGrid"></div>
+      <div class="section-label">Controls</div>
+      <div class="controls">
+        <input type="text" class="text-input" id="customInput" placeholder="Custom target (e.g. SMARCA4)">
+        <select class="size-select" id="sizeSelect">
+          <option value="15">15 trials</option>
+          <option value="20" selected>20 trials</option>
+          <option value="30">30 trials</option>
+          <option value="50">50 trials</option>
+        </select>
+        <button class="run-btn" id="runBtn" onclick="runSearch()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          Search Trials
+        </button>
+        <button class="clear-btn" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
 
-    <div class="section-label">Controls</div>
-    <div class="controls">
-      <input type="text" class="text-input" id="customInput" placeholder="Custom target (e.g. SMARCA4)">
-      <select class="size-select" id="sizeSelect">
-        <option value="15">15 trials</option>
-        <option value="20" selected>20 trials</option>
-        <option value="30">30 trials</option>
-        <option value="50">50 trials</option>
-      </select>
-      <button class="run-btn" id="runBtn" onclick="runSearch()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        Search Trials
-      </button>
-      <button class="clear-btn" onclick="clearAll()">Clear</button>
+    <div class="progress-card" id="progressCard">
+      <div class="steps">
+        <div class="step"><div class="step-num" id="sn1">1</div><div class="step-lbl" id="sl1">Fetch Phase II Trials</div></div>
+        <div class="step-conn" id="sc1"></div>
+        <div class="step"><div class="step-num" id="sn2">2</div><div class="step-lbl" id="sl2">Find Phase I Predecessors</div></div>
+        <div class="step-conn" id="sc2"></div>
+        <div class="step"><div class="step-num" id="sn3">3</div><div class="step-lbl" id="sl3">Find Phase III Successors</div></div>
+      </div>
+      <div class="prog-note" id="progNote"><div class="spinner"></div><span id="progText">Initializing…</span></div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div id="welcome" class="welcome">
+      <div class="welcome-chips" id="wchips"></div>
+      <h2>Select a mutation target to begin</h2>
+      <p>Choose a predefined genetic target or type a custom term. The tool fetches Phase II NSCLC trials then traces the full development pipeline — Phase I predecessors and Phase III successors — by drug name.</p>
+    </div>
+
+    <div id="resultsArea" style="display:none">
+      <div class="results-bar">
+        <h3 id="resultsTitle">Results</h3>
+        <span class="count-chip" id="countChip"></span>
+        <div class="filter-tabs">
+          <div class="ftab active" onclick="setFilter('all',this)">All</div>
+          <div class="ftab" onclick="setFilter('has_p1',this)">← Ph I</div>
+          <div class="ftab" onclick="setFilter('has_p3',this)">→ Ph III</div>
+          <div class="ftab" onclick="setFilter('no_p3',this)">No Ph III</div>
+          <div class="ftab" onclick="setFilter('COMPLETED',this)">Completed</div>
+          <div class="ftab" onclick="setFilter('RECRUITING',this)">Recruiting</div>
+          <div class="ftab" onclick="setFilter('TERMINATED',this)">Terminated</div>
+        </div>
+        <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="trial-list" id="trialList"></div>
+      <div class="pagination" id="pagination"></div>
     </div>
   </div>
 
-  <!-- Progress -->
-  <div class="progress-card" id="progressCard">
-    <div class="steps">
-      <div class="step">
-        <div class="step-num" id="sn1">1</div>
-        <div class="step-lbl" id="sl1">Fetch Phase II Trials</div>
+  <!-- ═══════════ NCT LOOKUP ═══════════ -->
+  <div id="panelNct" style="display:none">
+    <div class="search-card">
+      <h2>NCT Number Lookup</h2>
+      <p>Enter any ClinicalTrials.gov NCT identifier to retrieve full trial details and trace the development pipeline — Phase I predecessors and Phase III successors — by drug name.</p>
+      <div class="pipeline-row">
+        <div class="pipe-node ph1">Phase I</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-node ph2">Your Trial</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-node ph3">Phase III</div>
       </div>
-      <div class="step-conn" id="sc1"></div>
-      <div class="step">
-        <div class="step-num" id="sn2">2</div>
-        <div class="step-lbl" id="sl2">Find Phase III Links</div>
+      <div class="section-label">Enter NCT Number</div>
+      <div class="nct-search-area">
+        <div class="nct-input-wrap">
+          <input type="text" class="nct-input" id="nctInput" placeholder="e.g. NCT02296125" onkeydown="if(event.key==='Enter')lookupNCT()">
+          <div class="nct-hint">Format: NCT followed by 8 digits — copy directly from ClinicalTrials.gov</div>
+        </div>
+        <button class="nct-run-btn" id="nctRunBtn" onclick="lookupNCT()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Look Up
+        </button>
       </div>
     </div>
-    <div class="prog-note" id="progNote">
-      <div class="spinner"></div>
-      <span id="progText">Initializing…</span>
-    </div>
-  </div>
 
-  <!-- Error -->
-  <div class="error-box" id="errorBox"></div>
-
-  <!-- Welcome -->
-  <div id="welcome" class="welcome">
-    <div class="welcome-chips" id="wchips"></div>
-    <h2>Select a mutation target to begin</h2>
-    <p>Choose a predefined genetic target above or type a custom term. The tool will pull Phase II NSCLC trials and automatically look up any linked Phase III trials by drug name.</p>
-  </div>
-
-  <!-- Results -->
-  <div id="resultsArea" style="display:none">
-    <div class="results-bar">
-      <h3 id="resultsTitle">Results</h3>
-      <span class="count-chip" id="countChip"></span>
-      <div class="filter-tabs">
-        <div class="ftab active" onclick="setFilter('all',this)">All</div>
-        <div class="ftab" onclick="setFilter('linked',this)">→ Ph III</div>
-        <div class="ftab" onclick="setFilter('no_p3',this)">No Ph III</div>
-        <div class="ftab" onclick="setFilter('COMPLETED',this)">Completed</div>
-        <div class="ftab" onclick="setFilter('RECRUITING',this)">Recruiting</div>
-        <div class="ftab" onclick="setFilter('TERMINATED',this)">Terminated</div>
+    <div class="progress-card" id="nctProgressCard">
+      <div class="steps">
+        <div class="step"><div class="step-num" id="nsn1">1</div><div class="step-lbl" id="nsl1">Fetch Trial Details</div></div>
+        <div class="step-conn" id="nsc1"></div>
+        <div class="step"><div class="step-num" id="nsn2">2</div><div class="step-lbl" id="nsl2">Find Phase I Predecessors</div></div>
+        <div class="step-conn" id="nsc2"></div>
+        <div class="step"><div class="step-num" id="nsn3">3</div><div class="step-lbl" id="nsl3">Find Phase III Successors</div></div>
       </div>
-      <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+      <div class="prog-note" id="nctProgNote"><div class="spinner"></div><span id="nctProgText">Fetching…</span></div>
     </div>
-    <div class="trial-list" id="trialList"></div>
-    <div class="pagination" id="pagination"></div>
+
+    <div class="error-box" id="nctErrorBox"></div>
+
+    <div id="nctWelcome" class="welcome">
+      <h2>Enter an NCT number above</h2>
+      <p>Paste any ClinicalTrials.gov identifier — the tool will retrieve the full trial record and automatically look up Phase I predecessors and Phase III successors by drug name.</p>
+    </div>
+
+    <div id="nctResult" style="display:none"></div>
   </div>
 
 </div>
 
 <script>
-// ── Mutation targets
+// ─── Mutation targets
 const MUTATIONS = [
   {label:'EGFR',      q:'EGFR mutation non-small cell lung'},
   {label:'ALK',       q:'ALK rearrangement non-small cell lung'},
@@ -277,382 +384,448 @@ const MUTATIONS = [
   {label:'FGFR',      q:'FGFR non-small cell lung'},
 ];
 
-// ── State
-let allTrials = [];
-let currentFilter = 'all';
-let page = 1;
-const PER_PAGE = 20;
-let selectedMutation = null;
-
-// ── Build mutation buttons
-const mutGrid = document.getElementById('mutGrid');
-MUTATIONS.forEach((m, i) => {
-  const btn = document.createElement('button');
-  btn.className = 'mut-btn';
-  btn.textContent = m.label;
-  btn.onclick = () => {
-    document.querySelectorAll('.mut-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedMutation = m;
-    document.getElementById('customInput').value = '';
-  };
-  mutGrid.appendChild(btn);
-});
-
-// Welcome chips
-const wc = document.getElementById('wchips');
-MUTATIONS.forEach((m, i) => {
-  const c = document.createElement('div');
-  c.className = 'w-chip';
-  c.textContent = m.label;
-  c.style.animationDelay = (i * 50) + 'ms';
-  wc.appendChild(c);
-});
-
-// ── Main search
-async function runSearch() {
-  const custom = document.getElementById('customInput').value.trim();
-  const mutation = custom
-    ? {label: custom, q: `${custom} non-small cell lung`}
-    : selectedMutation;
-
-  if (!mutation) { alert('Please select a mutation target or enter a custom term.'); return; }
-
-  const pageSize = parseInt(document.getElementById('sizeSelect').value);
-
-  setUI('loading');
-  setStep(1);
-  setNote(`Searching ClinicalTrials.gov for Phase II NSCLC trials: ${mutation.label}…`);
-
-  try {
-    // ── Step 1: Fetch Phase II trials
-    const p2 = await fetchCTG(mutation.q, 'PHASE2', pageSize);
-    const studies = p2.studies || [];
-
-    if (studies.length === 0) {
-      showError(`No Phase II trials found for "${mutation.label}". Try a broader term.`);
-      return;
-    }
-
-    setStep(2);
-    setNote(`Found ${studies.length} Phase II trials. Searching for Phase III links…`);
-
-    // ── Step 2: Extract drugs and look up Phase III links
-    const drugs = extractDrugs(studies);
-    const p3Map = {};
-
-    for (const drug of drugs.slice(0, 10)) {
-      try {
-        const p3 = await fetchCTG(`${drug} non-small cell lung`, 'PHASE3', 5);
-        const hits = (p3.studies || []).map(s => ({
-          nctId: s.protocolSection?.identificationModule?.nctId,
-          title: s.protocolSection?.identificationModule?.briefTitle,
-          status: s.protocolSection?.statusModule?.overallStatus,
-        })).filter(s => s.nctId);
-        if (hits.length) p3Map[drug.toLowerCase()] = hits;
-      } catch (_) {}
-      await sleep(100);
-    }
-
-    // ── Build enriched trial list
-    allTrials = studies.map(s => buildTrial(s, p3Map));
-
-    document.getElementById('resultsTitle').textContent =
-      `${mutation.label} — Phase II Trials`;
-    currentFilter = 'all';
-    page = 1;
-    document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.ftab')[0].classList.add('active');
-
-    setUI('results');
-    renderList();
-
-  } catch(err) {
-    showError('Search failed: ' + err.message);
-  }
-}
-
-// ── ClinicalTrials.gov API v2
-async function fetchCTG(query, phase, pageSize) {
-  const params = new URLSearchParams({
-    'query.term': query,
-    'filter.advanced': `AREA[Phase]${phase}`,
-    'pageSize': pageSize,
-    'sort': 'LastUpdatePostDate:desc',
-  });
-  const r = await fetch(`https://clinicaltrials.gov/api/v2/studies?${params}`);
-  if (!r.ok) throw new Error(`ClinicalTrials.gov error ${r.status}`);
-  return r.json();
-}
-
-// ── Extract experimental drug names from Phase 2 studies
 const COMMON = new Set(['placebo','cisplatin','carboplatin','paclitaxel','docetaxel',
   'gemcitabine','pemetrexed','bevacizumab','pembrolizumab','nivolumab','atezolizumab',
   'durvalumab','ipilimumab','vinorelbine','etoposide','fluorouracil','methotrexate',
-  'tremelimumab','chemotherapy','radiation','radiotherapy']);
+  'tremelimumab','chemotherapy','radiation','radiotherapy','prednisone','dexamethasone']);
 
-function extractDrugs(studies) {
-  const seen = new Map();
-  for (const s of studies) {
-    const ivs = s.protocolSection?.armsInterventionsModule?.interventions || [];
-    for (const iv of ivs) {
-      if (!['DRUG','BIOLOGICAL'].includes(iv.type)) continue;
-      const name = (iv.name || '').trim();
-      if (name.length < 3) continue;
-      const key = name.toLowerCase();
-      if (COMMON.has(key) || key.includes('placebo')) continue;
-      if (!seen.has(key)) seen.set(key, name);
+let allTrials=[], filtered=[], selectedMutation=null;
+let currentFilter='all', page=1;
+const PER_PAGE=20;
+
+// ─── Mode switch
+function switchMode(m){
+  document.getElementById('panelMutation').style.display = m==='mutation'?'block':'none';
+  document.getElementById('panelNct').style.display      = m==='nct'?'block':'none';
+  document.getElementById('tabMutation').classList.toggle('active', m==='mutation');
+  document.getElementById('tabNct').classList.toggle('active',      m==='nct');
+}
+
+// ─── Build mutation buttons + welcome chips
+const mg = document.getElementById('mutGrid');
+const wc = document.getElementById('wchips');
+MUTATIONS.forEach((m,i)=>{
+  const b=document.createElement('button');
+  b.className='mut-btn'; b.textContent=m.label;
+  b.onclick=()=>{
+    document.querySelectorAll('.mut-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); selectedMutation=m;
+    document.getElementById('customInput').value='';
+  };
+  mg.appendChild(b);
+  const c=document.createElement('div');
+  c.className='w-chip'; c.textContent=m.label;
+  c.style.animationDelay=(i*50)+'ms'; wc.appendChild(c);
+});
+
+// ─── API
+async function fetchCTG(query, phase, n){
+  const p=new URLSearchParams({'query.term':query,'filter.advanced':`AREA[Phase]${phase}`,'pageSize':n,'sort':'LastUpdatePostDate:desc'});
+  const r=await fetch(`https://clinicaltrials.gov/api/v2/studies?${p}`);
+  if(!r.ok) throw new Error(`API error ${r.status}`);
+  return r.json();
+}
+async function fetchNCT(id){
+  const r=await fetch(`https://clinicaltrials.gov/api/v2/studies/${id}`);
+  if(!r.ok) throw new Error(`${id} not found (${r.status})`);
+  return r.json();
+}
+
+// ─── Drug extraction
+function extractDrugs(studies){
+  const seen=new Map();
+  for(const s of studies){
+    for(const iv of (s.protocolSection?.armsInterventionsModule?.interventions||[])){
+      if(!['DRUG','BIOLOGICAL'].includes(iv.type)) continue;
+      const name=(iv.name||'').trim();
+      const key=name.toLowerCase();
+      if(name.length<3||COMMON.has(key)||key.includes('placebo')) continue;
+      if(!seen.has(key)) seen.set(key,name);
     }
   }
   return [...seen.values()];
 }
+function drugsOf(s){
+  return (s.protocolSection?.armsInterventionsModule?.interventions||[])
+    .filter(iv=>['DRUG','BIOLOGICAL'].includes(iv.type))
+    .map(iv=>iv.name).filter(Boolean)
+    .filter(d=>!COMMON.has(d.toLowerCase())&&!d.toLowerCase().includes('placebo'));
+}
 
-// ── Build enriched trial object
-function buildTrial(s, p3Map) {
-  const m    = s.protocolSection || {};
-  const id   = m.identificationModule || {};
-  const stat = m.statusModule || {};
-  const desc = m.descriptionModule || {};
-  const des  = m.designModule || {};
-  const arms = m.armsInterventionsModule || {};
-  const sp   = m.sponsorCollaboratorsModule || {};
-  const loc  = m.contactsLocationsModule || {};
+// ─── Build phase map (drug → trials)
+async function buildMap(drugs, phase, n){
+  const map={};
+  for(const drug of drugs.slice(0,10)){
+    try{
+      const data=await fetchCTG(`${drug} non-small cell lung`, phase, n);
+      const hits=(data.studies||[]).map(s=>({
+        nctId:s.protocolSection?.identificationModule?.nctId,
+        title:s.protocolSection?.identificationModule?.briefTitle,
+        status:s.protocolSection?.statusModule?.overallStatus,
+      })).filter(h=>h.nctId);
+      if(hits.length) map[drug.toLowerCase()]=hits;
+    }catch(_){}
+    await sleep(90);
+  }
+  return map;
+}
 
-  const nctId    = id.nctId || '';
-  const title    = id.briefTitle || '';
-  const status   = stat.overallStatus || 'UNKNOWN';
-  const start    = stat.startDateStruct?.date || '';
-  const compDate = stat.primaryCompletionDateStruct?.date || '';
-  const sponsor  = sp.leadSponsor?.name || '';
-  const enroll   = des.enrollmentInfo?.count || '';
-  const summary  = (desc.briefSummary || '').substring(0, 400);
-
-  const drugs = (arms.interventions || [])
-    .filter(iv => ['DRUG','BIOLOGICAL'].includes(iv.type))
-    .map(iv => iv.name)
-    .filter(Boolean);
-
-  const countries = [...new Set(
-    (loc.locations || []).map(l => l.country).filter(Boolean)
-  )].slice(0, 5);
-
-  // Find Phase 3 links
-  const p3Links = [];
-  for (const drug of drugs) {
-    const key = drug.toLowerCase();
-    // Check each word in drug name
-    for (const [mapKey, hits] of Object.entries(p3Map)) {
-      if (key.includes(mapKey) || mapKey.includes(key.split(' ')[0])) {
-        for (const h of hits) {
-          if (!p3Links.find(x => x.nctId === h.nctId)) p3Links.push(h);
+// ─── Match drugs to map entries
+function matchLinks(drugs, map){
+  const links=[], seen=new Set();
+  for(const drug of drugs){
+    const key=drug.toLowerCase();
+    for(const [mk,hits] of Object.entries(map)){
+      if(key.includes(mk)||mk.includes(key.split(' ')[0])){
+        for(const h of hits){
+          if(!seen.has(h.nctId)){links.push(h);seen.add(h.nctId);}
         }
       }
     }
   }
-
-  return {nctId, title, status, start, compDate, sponsor, enroll, summary, drugs, countries, p3Links};
+  return links;
 }
 
-// ── Filter & render
-let filtered = [];
-
-function setFilter(type, el) {
-  if (el) {
-    document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-  }
-  currentFilter = type;
-  page = 1;
-  renderList();
+// ─── Build trial object
+function buildTrial(s, p1Map, p3Map){
+  const m=s.protocolSection||{};
+  const drugs=drugsOf(s);
+  return{
+    nctId:  m.identificationModule?.nctId||'',
+    title:  m.identificationModule?.briefTitle||'',
+    status: m.statusModule?.overallStatus||'UNKNOWN',
+    start:  m.statusModule?.startDateStruct?.date||'',
+    compDate:m.statusModule?.primaryCompletionDateStruct?.date||'',
+    sponsor:m.sponsorCollaboratorsModule?.leadSponsor?.name||'',
+    enroll: m.designModule?.enrollmentInfo?.count||'',
+    summary:(m.descriptionModule?.briefSummary||'').substring(0,400),
+    drugs,
+    countries:[...new Set((m.contactsLocationsModule?.locations||[]).map(l=>l.country).filter(Boolean))].slice(0,5),
+    p1Links:matchLinks(drugs, p1Map),
+    p3Links:matchLinks(drugs, p3Map),
+  };
 }
 
-function renderList() {
-  if (currentFilter === 'all')      filtered = allTrials;
-  else if (currentFilter === 'linked')  filtered = allTrials.filter(t => t.p3Links.length > 0);
-  else if (currentFilter === 'no_p3')   filtered = allTrials.filter(t => t.p3Links.length === 0);
-  else filtered = allTrials.filter(t => t.status === currentFilter);
+// ═══════════════════════════════════════════
+// MUTATION SEARCH
+// ═══════════════════════════════════════════
+async function runSearch(){
+  const custom=document.getElementById('customInput').value.trim();
+  const mut=custom?{label:custom,q:`${custom} non-small cell lung`}:selectedMutation;
+  if(!mut){alert('Please select a mutation target or enter a custom term.');return;}
 
-  document.getElementById('countChip').textContent =
-    `${filtered.length} of ${allTrials.length} trials`;
+  const n=parseInt(document.getElementById('sizeSelect').value);
+  setUI('loading'); setStep(1); setNote(`Searching Phase II NSCLC trials: ${mut.label}…`);
 
-  const list = document.getElementById('trialList');
-  list.innerHTML = '';
+  try{
+    const p2=await fetchCTG(mut.q,'PHASE2',n);
+    const studies=p2.studies||[];
+    if(!studies.length){showError(`No Phase II trials found for "${mut.label}".`);return;}
 
-  const slice = filtered.slice((page-1)*PER_PAGE, page*PER_PAGE);
+    const drugs=extractDrugs(studies);
 
-  if (slice.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">No trials match this filter.</div>';
-    document.getElementById('pagination').innerHTML = '';
-    return;
-  }
+    setStep(2); setNote(`Found ${studies.length} trials. Searching Phase I predecessors…`);
+    const p1Map=await buildMap(drugs,'PHASE1',5);
 
-  slice.forEach((t, i) => {
-    const card = document.createElement('div');
-    card.className = 'trial-card';
-    card.style.animationDelay = (i * 30) + 'ms';
+    setStep(3); setNote('Searching Phase III successors…');
+    const p3Map=await buildMap(drugs,'PHASE3',5);
 
-    const statusCls = {
-      COMPLETED: 'b-completed',
-      ACTIVE_NOT_RECRUITING: 'b-active',
-      RECRUITING: 'b-recruiting',
-      TERMINATED: 'b-terminated',
-      WITHDRAWN: 'b-withdrawn',
-      NOT_YET_RECRUITING: 'b-notyetrec',
-    }[t.status] || 'b-other';
+    allTrials=studies.map(s=>buildTrial(s,p1Map,p3Map));
+    document.getElementById('resultsTitle').textContent=`${mut.label} — Phase II Trials`;
+    currentFilter='all'; page=1;
+    document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.ftab')[0].classList.add('active');
+    setUI('results'); renderList();
+  }catch(e){showError(e.message);}
+}
 
-    const statusLabel = t.status.replace(/_/g,' ');
+// ═══════════════════════════════════════════
+// NCT LOOKUP
+// ═══════════════════════════════════════════
+async function lookupNCT(){
+  let raw=document.getElementById('nctInput').value.trim().toUpperCase().replace(/\s/g,'');
+  if(!raw.startsWith('NCT')) raw='NCT'+raw.replace(/\D/g,'');
+  if(!/^NCT\d{8}$/.test(raw)){showNctError('Please enter a valid NCT number (e.g. NCT02296125)');return;}
 
-    // Phase 3 display (primary = first link)
-    const p3Primary = t.p3Links[0];
-    const p3HTML = p3Primary ? `
-      <div class="p3-label"><span class="p3-arrow">→</span> Phase III</div>
-      <a class="p3-nct" href="https://clinicaltrials.gov/study/${p3Primary.nctId}" target="_blank" onclick="event.stopPropagation()">${p3Primary.nctId}</a>
-      <div class="p3-name">${esc(shorten(p3Primary.title, 60))}</div>
-      ${t.p3Links.length > 1 ? `<div class="p3-multi">+${t.p3Links.length - 1} more link${t.p3Links.length > 2 ? 's' : ''}</div>` : ''}
-    ` : `
-      <div class="p3-label">Phase III</div>
-      <div class="p3-none">None identified</div>
+  document.getElementById('nctRunBtn').disabled=true;
+  document.getElementById('nctProgressCard').classList.add('visible');
+  document.getElementById('nctErrorBox').classList.remove('visible');
+  document.getElementById('nctWelcome').style.display='none';
+  document.getElementById('nctResult').style.display='none';
+  setNctStep(1); setNctNote(`Fetching ${raw}…`);
+
+  try{
+    const data=await fetchNCT(raw);
+    const s=data.protocolSection||{};
+    const title  = s.identificationModule?.briefTitle||raw;
+    const status = s.statusModule?.overallStatus||'UNKNOWN';
+    const start  = s.statusModule?.startDateStruct?.date||'—';
+    const comp   = s.statusModule?.primaryCompletionDateStruct?.date||'—';
+    const sponsor= s.sponsorCollaboratorsModule?.leadSponsor?.name||'—';
+    const enroll = s.designModule?.enrollmentInfo?.count||'—';
+    const phases = (s.designModule?.phases||[]).join(', ')||'—';
+    const summary= (s.descriptionModule?.briefSummary||'').substring(0,500);
+    const countries=[...new Set((s.contactsLocationsModule?.locations||[]).map(l=>l.country).filter(Boolean))].slice(0,6);
+    const drugs=drugsOf(data);
+
+    setNctStep(2); setNctNote(`Finding Phase I predecessors for ${drugs.slice(0,2).join(', ')||raw}…`);
+    const p1Map=await buildMap(drugs,'PHASE1',5);
+    const p1Links=matchLinks(drugs,p1Map);
+
+    setNctStep(3); setNctNote('Finding Phase III successors…');
+    const p3Map=await buildMap(drugs,'PHASE3',5);
+    const p3Links=matchLinks(drugs,p3Map);
+
+    const statusCls={COMPLETED:'b-completed',ACTIVE_NOT_RECRUITING:'b-active',
+      RECRUITING:'b-recruiting',TERMINATED:'b-terminated',WITHDRAWN:'b-withdrawn',
+      NOT_YET_RECRUITING:'b-notyetrec'}[status]||'b-other';
+
+    const mkSec=(links)=>links.length
+      ?links.map(l=>`<div class="link-item-nct">
+          <div><a class="nct-a" href="https://clinicaltrials.gov/study/${l.nctId}" target="_blank">${l.nctId}</a></div>
+          <div class="li-title">${esc(shorten(l.title,80))}</div>
+          <div class="li-status">${(l.status||'').replace(/_/g,' ')}</div>
+        </div>`).join('')
+      :'<div class="sec-none">None identified</div>';
+
+    const drugHTML=drugs.length
+      ?`<div class="drug-tags">${drugs.slice(0,12).map(d=>`<span class="drug-tag">${esc(d)}</span>`).join('')}</div>`
+      :'<p style="color:var(--muted);font-size:12px">No targeted drugs identified</p>';
+
+    document.getElementById('nctResult').innerHTML=`
+      <div class="nct-result-card">
+        <div class="nct-result-header">
+          <div style="flex:1;min-width:0">
+            <div style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.5);margin-bottom:5px">
+              <a href="https://clinicaltrials.gov/study/${raw}" target="_blank" style="color:rgba(255,255,255,.7);text-decoration:none">${raw}</a>
+              &nbsp;·&nbsp; ${phases} &nbsp;·&nbsp; ${sponsor}
+            </div>
+            <h3>${esc(title)}</h3>
+          </div>
+          <span class="badge ${statusCls}" style="flex-shrink:0">${status.replace(/_/g,' ')}</span>
+        </div>
+
+        <div class="nct-pipeline">
+          <div class="nct-section ph1-sec">
+            <div class="nct-sec-title">← Phase I Predecessors (${p1Links.length})</div>
+            ${mkSec(p1Links)}
+          </div>
+          <div class="nct-section ph2-sec">
+            <div class="nct-sec-title">This Trial</div>
+            <div style="font-family:var(--mono);font-size:9px;color:var(--blue);margin-bottom:6px">Interventions</div>
+            ${drugHTML}
+          </div>
+          <div class="nct-section ph3-sec">
+            <div class="nct-sec-title">→ Phase III Successors (${p3Links.length})</div>
+            ${mkSec(p3Links)}
+          </div>
+        </div>
+
+        <div class="nct-meta-row">
+          <div class="nct-meta-item"><div class="nct-meta-label">Start</div><div class="nct-meta-val">${start}</div></div>
+          <div class="nct-meta-item"><div class="nct-meta-label">Primary Completion</div><div class="nct-meta-val">${comp}</div></div>
+          <div class="nct-meta-item"><div class="nct-meta-label">Enrollment</div><div class="nct-meta-val">${enroll}</div></div>
+          ${countries.length?`<div class="nct-meta-item"><div class="nct-meta-label">Locations</div><div class="nct-meta-val">${countries.join(', ')}</div></div>`:''}
+        </div>
+
+        ${summary?`<div class="nct-summary"><strong style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Brief Summary</strong>${esc(summary)}${summary.length>=500?'…':''}</div>`:''}
+      </div>
     `;
 
-    // All Phase 3 links for expanded view
-    const p3AllHTML = t.p3Links.length > 0
-      ? `<div class="p3-all-list">${t.p3Links.map(l =>
-          `<div class="p3-all-item"><a href="https://clinicaltrials.gov/study/${l.nctId}" target="_blank">${l.nctId}</a> ${esc(shorten(l.title, 70))}</div>`
-        ).join('')}</div>`
-      : '<p style="color:var(--muted);font-style:italic;font-size:12px">No Phase III trial identified for this drug in NSCLC</p>';
+    document.getElementById('nctResult').style.display='block';
+    document.getElementById('nctProgressCard').classList.remove('visible');
+  }catch(e){showNctError(e.message);}
+  finally{document.getElementById('nctRunBtn').disabled=false;}
+}
 
-    card.innerHTML = `
+// ═══════════════════════════════════════════
+// Filter + render list
+// ═══════════════════════════════════════════
+function setFilter(type,el){
+  if(el){document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
+  currentFilter=type; page=1; renderList();
+}
+
+function renderList(){
+  if(currentFilter==='all')         filtered=allTrials;
+  else if(currentFilter==='has_p1') filtered=allTrials.filter(t=>t.p1Links.length>0);
+  else if(currentFilter==='has_p3') filtered=allTrials.filter(t=>t.p3Links.length>0);
+  else if(currentFilter==='no_p3')  filtered=allTrials.filter(t=>t.p3Links.length===0);
+  else filtered=allTrials.filter(t=>t.status===currentFilter);
+
+  document.getElementById('countChip').textContent=`${filtered.length} of ${allTrials.length}`;
+  const list=document.getElementById('trialList');
+  list.innerHTML='';
+  const slice=filtered.slice((page-1)*PER_PAGE, page*PER_PAGE);
+
+  if(!slice.length){
+    list.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">No trials match this filter.</div>';
+    document.getElementById('pagination').innerHTML=''; return;
+  }
+
+  slice.forEach((t,i)=>{
+    const card=document.createElement('div');
+    card.className='trial-card';
+    card.style.animationDelay=(i*28)+'ms';
+
+    const scls={COMPLETED:'b-completed',ACTIVE_NOT_RECRUITING:'b-active',
+      RECRUITING:'b-recruiting',TERMINATED:'b-terminated',WITHDRAWN:'b-withdrawn',
+      NOT_YET_RECRUITING:'b-notyetrec'}[t.status]||'b-other';
+
+    const p1=t.p1Links[0];
+    const p1HTML=p1?`
+      <div class="side-label">← Phase I</div>
+      <div class="side-nct"><a href="https://clinicaltrials.gov/study/${p1.nctId}" target="_blank" onclick="event.stopPropagation()">${p1.nctId}</a></div>
+      <div class="side-title">${esc(shorten(p1.title,55))}</div>
+      ${t.p1Links.length>1?`<div class="side-more">+${t.p1Links.length-1} more</div>`:''}
+    `:`<div class="side-label">← Phase I</div><div class="side-none">None identified</div>`;
+
+    const p3=t.p3Links[0];
+    const p3HTML=p3?`
+      <div class="side-label">→ Phase III</div>
+      <div class="side-nct"><a href="https://clinicaltrials.gov/study/${p3.nctId}" target="_blank" onclick="event.stopPropagation()">${p3.nctId}</a></div>
+      <div class="side-title">${esc(shorten(p3.title,55))}</div>
+      ${t.p3Links.length>1?`<div class="side-more">+${t.p3Links.length-1} more</div>`:''}
+    `:`<div class="side-label">→ Phase III</div><div class="side-none">None identified</div>`;
+
+    const mkLinks=links=>links.length
+      ?`<div class="lnk-list">${links.map(l=>`<div class="lnk-item"><a href="https://clinicaltrials.gov/study/${l.nctId}" target="_blank">${l.nctId}</a>${esc(shorten(l.title,65))}</div>`).join('')}</div>`
+      :'<p style="font-size:12px;color:var(--muted);font-style:italic">None identified</p>';
+
+    card.innerHTML=`
       <div class="card-main" onclick="toggleCard(this.closest('.trial-card'))">
         <div class="card-left">
           <div class="card-top">
             <a class="nct-link" href="https://clinicaltrials.gov/study/${t.nctId}" target="_blank" onclick="event.stopPropagation()">${t.nctId}</a>
-            <span class="badge ${statusCls}">${statusLabel}</span>
-            ${t.p3Links.length > 0 ? '<span class="badge b-active">→ Ph III</span>' : ''}
+            <span class="badge ${scls}">${t.status.replace(/_/g,' ')}</span>
+            ${t.p1Links.length?'<span class="badge b-ph1">← Ph I</span>':''}
+            ${t.p3Links.length?'<span class="badge b-ph3">→ Ph III</span>':''}
           </div>
           <div class="card-title">${esc(t.title)}</div>
           <div class="card-meta">
-            ${t.sponsor ? `<div class="meta-item">Sponsor <strong>${esc(shorten(t.sponsor, 40))}</strong></div>` : ''}
-            ${t.start ? `<div class="meta-item">Start <strong>${t.start}</strong></div>` : ''}
-            ${t.compDate ? `<div class="meta-item">Completion <strong>${t.compDate}</strong></div>` : ''}
-            ${t.enroll ? `<div class="meta-item">Enrollment <strong>${t.enroll}</strong></div>` : ''}
-            ${t.countries.length ? `<div class="meta-item">Locations <strong>${t.countries.join(', ')}${t.countries.length >= 5 ? '…' : ''}</strong></div>` : ''}
+            ${t.sponsor?`<div class="meta-item">Sponsor <strong>${esc(shorten(t.sponsor,40))}</strong></div>`:''}
+            ${t.start?`<div class="meta-item">Start <strong>${t.start}</strong></div>`:''}
+            ${t.compDate?`<div class="meta-item">Completion <strong>${t.compDate}</strong></div>`:''}
+            ${t.enroll?`<div class="meta-item">Enrollment <strong>${t.enroll}</strong></div>`:''}
+            ${t.countries.length?`<div class="meta-item">Locations <strong>${t.countries.join(', ')}${t.countries.length>=5?'…':''}</strong></div>`:''}
           </div>
           <div class="expand-toggle">▸ Details</div>
         </div>
         <div class="card-right">
-          <div class="p3-box">${p3HTML}</div>
+          <div class="side-box ph1-box">${p1HTML}</div>
+          <div class="side-box ph3-box">${p3HTML}</div>
         </div>
       </div>
       <div class="card-detail">
         <div class="detail-inner">
-          ${t.drugs.length ? `
+          <div class="detail-box ph1-detail">
+            <div class="detail-box-title">← Phase I Predecessors (${t.p1Links.length})</div>
+            ${mkLinks(t.p1Links)}
+          </div>
           <div class="detail-box">
             <div class="detail-box-title">Interventions</div>
-            <div class="drug-tags">${t.drugs.slice(0,12).map(d => `<span class="drug-tag">${esc(d)}</span>`).join('')}</div>
-          </div>` : ''}
-          <div class="detail-box">
-            <div class="detail-box-title">Phase III Links Found</div>
-            ${p3AllHTML}
+            ${t.drugs.length?`<div class="drug-tags">${t.drugs.slice(0,12).map(d=>`<span class="drug-tag">${esc(d)}</span>`).join('')}</div>`:'<p style="color:var(--muted);font-size:12px">No targeted drugs listed</p>'}
           </div>
-          ${t.summary ? `
-          <div class="detail-box" style="grid-column:1/-1">
-            <div class="detail-box-title">Brief Summary</div>
-            <p>${esc(t.summary)}${t.summary.length >= 400 ? '…' : ''}</p>
-          </div>` : ''}
+          <div class="detail-box ph3-detail">
+            <div class="detail-box-title">→ Phase III Successors (${t.p3Links.length})</div>
+            ${mkLinks(t.p3Links)}
+          </div>
+          ${t.summary?`<div class="detail-box" style="grid-column:1/-1"><div class="detail-box-title">Brief Summary</div><p>${esc(t.summary)}${t.summary.length>=400?'…':''}</p></div>`:''}
         </div>
       </div>
     `;
     list.appendChild(card);
   });
-
   renderPagination();
 }
 
-function toggleCard(card) {
-  const open = card.classList.toggle('expanded');
-  const tog = card.querySelector('.expand-toggle');
-  if (tog) tog.textContent = open ? '▾ Collapse' : '▸ Details';
+function toggleCard(card){
+  const open=card.classList.toggle('expanded');
+  const tog=card.querySelector('.expand-toggle');
+  if(tog) tog.textContent=open?'▾ Collapse':'▸ Details';
 }
 
-function renderPagination() {
-  const pages = Math.ceil(filtered.length / PER_PAGE);
-  const el = document.getElementById('pagination');
-  el.innerHTML = '';
-  if (pages <= 1) return;
-
-  const prev = document.createElement('button');
-  prev.className = 'page-btn'; prev.textContent = '← Prev'; prev.disabled = page <= 1;
-  prev.onclick = () => { page--; renderList(); };
-
-  const info = document.createElement('span');
-  info.textContent = `Page ${page} of ${pages}`;
-
-  const next = document.createElement('button');
-  next.className = 'page-btn'; next.textContent = 'Next →'; next.disabled = page >= pages;
-  next.onclick = () => { page++; renderList(); };
-
-  el.append(prev, info, next);
+function renderPagination(){
+  const pages=Math.ceil(filtered.length/PER_PAGE);
+  const el=document.getElementById('pagination');
+  el.innerHTML='';
+  if(pages<=1) return;
+  const prev=document.createElement('button');
+  prev.className='page-btn';prev.textContent='← Prev';prev.disabled=page<=1;
+  prev.onclick=()=>{page--;renderList();};
+  const info=document.createElement('span');
+  info.textContent=`Page ${page} of ${pages}`;
+  const next=document.createElement('button');
+  next.className='page-btn';next.textContent='Next →';next.disabled=page>=pages;
+  next.onclick=()=>{page++;renderList();};
+  el.append(prev,info,next);
 }
 
-// ── Export CSV
-function exportCSV() {
-  const header = ['Phase2_NCT','Title','Status','Sponsor','Start','Completion','Enrollment','Countries','Drugs','Phase3_NCTs','Phase3_Titles'];
-  const rows = filtered.map(t => [
-    t.nctId, t.title, t.status, t.sponsor, t.start, t.compDate, t.enroll,
-    t.countries.join('; '),
-    t.drugs.join('; '),
-    t.p3Links.map(l => l.nctId).join('; '),
-    t.p3Links.map(l => l.title).join('; '),
-  ].map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(','));
-  const csv = [header.join(','), ...rows].join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-  a.download = `nsclc_trials_${Date.now()}.csv`;
+function exportCSV(){
+  const h=['Phase2_NCT','Title','Status','Sponsor','Start','Completion','Enrollment','Countries','Drugs','Phase1_NCTs','Phase1_Titles','Phase3_NCTs','Phase3_Titles'];
+  const rows=filtered.map(t=>[
+    t.nctId,t.title,t.status,t.sponsor,t.start,t.compDate,t.enroll,
+    t.countries.join('; '),t.drugs.join('; '),
+    t.p1Links.map(l=>l.nctId).join('; '),t.p1Links.map(l=>l.title).join('; '),
+    t.p3Links.map(l=>l.nctId).join('; '),t.p3Links.map(l=>l.title).join('; '),
+  ].map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([[h.join(','),...rows].join('\n')],{type:'text/csv'}));
+  a.download=`nsclc_trials_${Date.now()}.csv`;
   a.click();
 }
 
-// ── UI helpers
-function setUI(state) {
-  document.getElementById('runBtn').disabled = (state === 'loading');
-  document.getElementById('progressCard').classList.toggle('visible', state === 'loading');
-  document.getElementById('welcome').style.display = (state === 'welcome') ? 'block' : 'none';
-  document.getElementById('resultsArea').style.display = (state === 'results') ? 'block' : 'none';
+// ─── UI helpers — mutation search
+function setUI(state){
+  document.getElementById('runBtn').disabled=(state==='loading');
+  document.getElementById('progressCard').classList.toggle('visible',state==='loading');
+  document.getElementById('welcome').style.display=(state==='welcome')?'block':'none';
+  document.getElementById('resultsArea').style.display=(state==='results')?'block':'none';
   document.getElementById('errorBox').classList.remove('visible');
 }
-
-function setStep(n) {
-  for (let i = 1; i <= 2; i++) {
-    const num = document.getElementById(`sn${i}`);
-    const lbl = document.getElementById(`sl${i}`);
-    const con = document.getElementById(`sc${i}`);
-    if (i < n)  { num.className='step-num done';   lbl.className='step-lbl done';   if(con)con.className='step-conn done'; }
-    if (i === n){ num.className='step-num active';  lbl.className='step-lbl active'; }
-    if (i > n)  { num.className='step-num';         lbl.className='step-lbl';        if(con)con.className='step-conn'; }
+function setStep(n){
+  for(let i=1;i<=3;i++){
+    const num=document.getElementById(`sn${i}`),lbl=document.getElementById(`sl${i}`),con=document.getElementById(`sc${i}`);
+    if(i<n){num.className='step-num done';lbl.className='step-lbl done';if(con)con.className='step-conn done';}
+    if(i===n){num.className='step-num active';lbl.className='step-lbl active';}
+    if(i>n){num.className='step-num';lbl.className='step-lbl';if(con)con.className='step-conn';}
   }
 }
-
-function setNote(text) { document.getElementById('progText').textContent = text; }
-
-function showError(msg) {
-  const el = document.getElementById('errorBox');
-  el.textContent = '⚠ ' + msg;
-  el.classList.add('visible');
+function setNote(t){document.getElementById('progText').textContent=t;}
+function showError(msg){
+  document.getElementById('errorBox').textContent='⚠ '+msg;
+  document.getElementById('errorBox').classList.add('visible');
   document.getElementById('progressCard').classList.remove('visible');
-  document.getElementById('welcome').style.display = 'block';
-  document.getElementById('runBtn').disabled = false;
+  document.getElementById('welcome').style.display='block';
+  document.getElementById('runBtn').disabled=false;
 }
-
-function clearAll() {
-  document.querySelectorAll('.mut-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('customInput').value = '';
-  selectedMutation = null;
-  allTrials = [];
+function clearAll(){
+  document.querySelectorAll('.mut-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('customInput').value=''; selectedMutation=null; allTrials=[];
   setUI('welcome');
 }
 
-function shorten(s, n) { return s && s.length > n ? s.substring(0, n) + '…' : (s || ''); }
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+// ─── UI helpers — NCT lookup
+function setNctStep(n){
+  for(let i=1;i<=3;i++){
+    const num=document.getElementById(`nsn${i}`),lbl=document.getElementById(`nsl${i}`),con=document.getElementById(`nsc${i}`);
+    if(i<n){num.className='step-num done';lbl.className='step-lbl done';if(con)con.className='step-conn done';}
+    if(i===n){num.className='step-num active';lbl.className='step-lbl active';}
+    if(i>n){num.className='step-num';lbl.className='step-lbl';if(con)con.className='step-conn';}
+  }
+}
+function setNctNote(t){document.getElementById('nctProgText').textContent=t;}
+function showNctError(msg){
+  document.getElementById('nctErrorBox').textContent='⚠ '+msg;
+  document.getElementById('nctErrorBox').classList.add('visible');
+  document.getElementById('nctProgressCard').classList.remove('visible');
+  document.getElementById('nctWelcome').style.display='block';
+  document.getElementById('nctRunBtn').disabled=false;
+}
+
+function shorten(s,n){return s&&s.length>n?s.substring(0,n)+'…':(s||'');}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 </script>
 </body>
 </html>

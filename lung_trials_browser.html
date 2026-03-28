@@ -262,7 +262,7 @@ table.nct-table td{padding:9px 14px;vertical-align:middle}
   <div id="panelMutation">
     <div class="search-card">
       <h2>Select Mutation Target</h2>
-      <p>Fetches Phase II NSCLC trials then traces Phase I predecessors and Phase III successors by drug name. Solid-tumor-only filter applied. Phase I/II studies, tumor-agnostic trials, and treatment type are auto-detected.</p>
+      <p>Fetches <strong>all</strong> Phase II NSCLC solid-tumor trials (no limit — paginates automatically). Phase I/II flag, tumor-agnostic, and mono/combo auto-detected. Phase I &amp; III links found for the top 25 most common drugs.</p>
       <div class="pipeline-row">
         <div class="pipe-node ph1">Phase I</div><div class="pipe-arrow">→</div>
         <div class="pipe-node ph2">Phase II (primary)</div><div class="pipe-arrow">→</div>
@@ -273,17 +273,12 @@ table.nct-table td{padding:9px 14px;vertical-align:middle}
 
       <div class="controls-row">
         <input type="text" class="text-input" id="customInput" placeholder="Custom target (e.g. SMARCA4)">
-        <select class="size-select" id="sizeSelect">
-          <option value="15">15 trials</option>
-          <option value="20" selected>20 trials</option>
-          <option value="30">30 trials</option>
-          <option value="50">50 trials</option>
-        </select>
         <button class="run-btn" id="runBtn" onclick="runSearch()">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          Search Trials
+          Search All Trials
         </button>
         <button class="clear-btn" onclick="clearAll()">Clear</button>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted)" id="totalNote"></span>
       </div>
     </div>
 
@@ -586,6 +581,8 @@ function switchMode(m) {
 // ══════════════════════════════════════════════════════════════════
 // API
 // ══════════════════════════════════════════════════════════════════
+
+// Single-page fetch — for drug map lookups (Phase I / Phase III)
 async function fetchCTG(query, phase, n) {
   const p = new URLSearchParams({
     'query.term': query,
@@ -596,6 +593,31 @@ async function fetchCTG(query, phase, n) {
   const r = await fetch(`https://clinicaltrials.gov/api/v2/studies?${p}`);
   if (!r.ok) throw new Error(`API error ${r.status}`);
   return r.json();
+}
+
+// Paginated fetch — retrieves ALL matching studies across all pages
+async function fetchAllCTG(query, phase, onProgress) {
+  const PAGE_SIZE = 200; // 200 per page keeps responses fast
+  let all = [], token = null, total = null, pageNum = 0;
+  do {
+    pageNum++;
+    const p = new URLSearchParams({
+      'query.term': query,
+      'filter.advanced': `AREA[Phase]${phase}`,
+      'pageSize': PAGE_SIZE,
+      'sort': 'LastUpdatePostDate:desc',
+    });
+    if (token) p.append('pageToken', token);
+    const r = await fetch(`https://clinicaltrials.gov/api/v2/studies?${p}`);
+    if (!r.ok) throw new Error(`API error ${r.status} on page ${pageNum}`);
+    const data = await r.json();
+    if (total === null) total = data.totalCount || 0;
+    all = all.concat(data.studies || []);
+    token = data.nextPageToken || null;
+    if (onProgress) onProgress(all.length, total);
+    if (token) await sleep(150);
+  } while (token);
+  return { studies: all, totalCount: total };
 }
 
 async function fetchNCT(id) {
@@ -661,9 +683,34 @@ function isSolidTumor(s) {
 // ══════════════════════════════════════════════════════════════════
 // DRUG MAP FOR PHASE LINKING
 // ══════════════════════════════════════════════════════════════════
-async function buildMap(drugs, phase, n) {
+
+// Rank drugs by how many Phase II trials use them → prioritise the most common
+function rankDrugs(studies) {
+  const freq = {};
+  for (const s of studies) {
+    for (const d of getExperimentalDrugs(s)) {
+      const k = d.toLowerCase();
+      freq[k] = (freq[k] || 0) + 1;
+    }
+  }
+  // Return unique display names sorted by frequency descending
+  const seen = new Map();
+  for (const s of studies) {
+    for (const d of getExperimentalDrugs(s)) {
+      const k = d.toLowerCase();
+      if (!seen.has(k)) seen.set(k, d);
+    }
+  }
+  return [...seen.entries()]
+    .sort((a, b) => (freq[b[0]]||0) - (freq[a[0]]||0))
+    .map(([, name]) => name);
+}
+
+async function buildMap(drugs, phase, n, onProgress) {
   const map = {};
-  for (const drug of drugs.slice(0, 10)) {
+  const limit = Math.min(drugs.length, 25); // up to 25 drugs
+  for (let i = 0; i < limit; i++) {
+    const drug = drugs[i];
     try {
       const data = await fetchCTG(`${drug} non-small cell lung`, phase, n);
       const hits = (data.studies||[]).map(s => ({
@@ -673,7 +720,8 @@ async function buildMap(drugs, phase, n) {
       })).filter(h => h.nctId);
       if (hits.length) map[drug.toLowerCase()] = hits;
     } catch(_) {}
-    await sleep(90);
+    if (onProgress) onProgress(i + 1, limit, drug);
+    await sleep(100);
   }
   return map;
 }
@@ -737,22 +785,39 @@ async function runSearch() {
   const mut = custom ? {label:custom, q:`${custom} non-small cell lung`} : selectedMutation;
   if (!mut) { alert('Please select a mutation target or enter a custom term.'); return; }
 
-  const n = parseInt(document.getElementById('sizeSelect').value);
   setUI('loading'); setStep(1);
-  setNote(`Searching Phase II NSCLC trials: ${mut.label}…`);
+  setNote(`Searching all Phase II NSCLC trials for: ${mut.label}…`);
+  document.getElementById('totalNote').textContent = '';
 
   try {
-    const p2 = await fetchCTG(mut.q, 'PHASE2', n);
-    const studies = (p2.studies||[]).filter(isSolidTumor);  // solid tumor filter
+    // Paginated fetch — all results, no limit
+    const p2 = await fetchAllCTG(mut.q, 'PHASE2', (fetched, total) => {
+      setNote(`Fetching… ${fetched} / ${total} trials retrieved`);
+    });
+
+    const studies = (p2.studies||[]).filter(isSolidTumor);
     if (!studies.length) { showError(`No solid-tumor Phase II trials found for "${mut.label}".`); return; }
 
-    const expDrugsList = [...new Set(studies.flatMap(s => getExperimentalDrugs(s)))];
+    const totalInDB = p2.totalCount;
+    const solidCount = studies.length;
+    const skipped = totalInDB - solidCount;
+    document.getElementById('totalNote').textContent =
+      `${solidCount} solid-tumor trials (${totalInDB} total in DB${skipped > 0 ? `, ${skipped} hematologic excluded` : ''})`;
 
-    setStep(2); setNote(`Found ${studies.length} solid-tumor trials. Searching Phase I predecessors…`);
-    const p1Map = await buildMap(expDrugsList, 'PHASE1', 5);
+    // Rank drugs by frequency across all retrieved trials
+    const rankedDrugs = rankDrugs(studies);
 
-    setStep(3); setNote('Searching Phase III successors…');
-    const p3Map = await buildMap(expDrugsList, 'PHASE3', 5);
+    setStep(2);
+    setNote(`${solidCount} trials found. Searching Phase I predecessors (top ${Math.min(rankedDrugs.length,25)} drugs)…`);
+    const p1Map = await buildMap(rankedDrugs, 'PHASE1', 6, (i, total, drug) => {
+      setNote(`Phase I lookup: ${i}/${total} — "${drug}"`);
+    });
+
+    setStep(3);
+    setNote(`Searching Phase III successors (top ${Math.min(rankedDrugs.length,25)} drugs)…`);
+    const p3Map = await buildMap(rankedDrugs, 'PHASE3', 6, (i, total, drug) => {
+      setNote(`Phase III lookup: ${i}/${total} — "${drug}"`);
+    });
 
     allTrials = studies.map(s => buildTrial(s, p1Map, p3Map));
 

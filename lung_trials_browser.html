@@ -1146,7 +1146,7 @@ function exportCSV() {
     t.expDrugs.map(cv).join(' | '),t.allDrugs.map(cv).join(' | '),
     fmtNCTs(t.p1Links), fmtTitles(t.p1Links),
     fmtNCTs(t.p3Links), fmtTitles(t.p3Links),
-  ].map(v => `"${cv(v)}"`)).join(','));
+  ].map(v => `"${cv(v)}"`).join(','));
   dlCSV([h.join(','),...rows].join('\n'),`nsclc_trials_${Date.now()}.csv`);
 }
 

@@ -3,20 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NSCLC Phase 2 — Targeted Therapy Finder</title>
+<title>NSCLC Phase 2 — Mutation-Targeted Trial Finder</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'IBM Plex Mono',monospace;background:#050d1a;color:#e2e8f0;min-height:100vh}
-a{color:#38bdf8;text-decoration:none}a:hover{text-decoration:underline}
+a{color:#38bdf8;text-decoration:none}
+a:hover{text-decoration:underline}
 input,select,button{font-family:inherit}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* layout */
 .hdr{background:linear-gradient(135deg,#060f1e,#0b1a30);border-bottom:1px solid #162032;padding:20px 24px 14px}
-.hdr-top{font-size:10px;letter-spacing:.18em;color:#3b82f6;text-transform:uppercase;font-weight:600;margin-bottom:4px}
-.hdr-title{font-size:clamp(14px,2.2vw,20px);font-weight:600;color:#f0f9ff;margin-bottom:3px}
+.hdr-tag{font-size:10px;letter-spacing:.18em;color:#3b82f6;text-transform:uppercase;font-weight:600;margin-bottom:4px}
+.hdr-h1{font-size:clamp(14px,2.2vw,20px);font-weight:600;color:#f0f9ff;margin-bottom:3px}
 .hdr-sub{font-size:11px;color:#475569}
+
 .body{padding:14px 24px 60px}
 
 /* stat cards */
@@ -25,17 +26,17 @@ input,select,button{font-family:inherit}
 .sc-l{font-size:9px;color:#475569;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
 .sc-v{font-size:19px;font-weight:600}
 
-/* loading */
-.pbar-wrap{display:flex;align-items:center;gap:10px;background:#0a1628;border:1px solid #162032;border-radius:8px;padding:9px 14px;margin-bottom:12px}
-.ptrack{flex:1;height:3px;background:#162032;border-radius:2px;max-width:180px}
-.pfill{height:100%;background:#3b82f6;border-radius:2px;transition:width .4s}
+/* progress */
+.prog{display:flex;align-items:center;gap:10px;background:#0a1628;border:1px solid #162032;border-radius:8px;padding:9px 14px;margin-bottom:12px}
+.pt{flex:1;height:3px;background:#162032;border-radius:2px;max-width:200px}
+.pf{height:100%;background:#3b82f6;border-radius:2px;transition:width .3s}
 
 /* chips */
 .chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:11px}
 .chip{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #162032;background:transparent;color:#475569;white-space:nowrap;transition:all .1s}
 .chip:hover{border-color:#334155;color:#94a3b8}
 
-/* filter row */
+/* filters */
 .frow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
 .frow input{flex:1 1 180px;min-width:0;padding:7px 10px;border-radius:6px;border:1px solid #162032;background:#0a1628;color:#e2e8f0;font-size:12px;outline:none}
 .frow select{padding:7px 10px;border-radius:6px;border:1px solid #162032;background:#0a1628;color:#e2e8f0;font-size:12px;cursor:pointer;outline:none}
@@ -45,9 +46,7 @@ input,select,button{font-family:inherit}
 /* table */
 .tw{overflow-x:auto;border-radius:10px;border:1px solid #0f1e30}
 table{width:100%;border-collapse:collapse;font-size:12px}
-thead th{padding:8px 11px;text-align:left;background:#0b1628;color:#64748b;font-size:10px;font-weight:600;
-  letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid #1e293b;
-  cursor:pointer;white-space:nowrap;user-select:none}
+thead th{padding:8px 11px;text-align:left;background:#0b1628;color:#64748b;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid #1e293b;cursor:pointer;white-space:nowrap;user-select:none}
 thead th:hover{color:#94a3b8}
 .tha::after{content:" ↑"}.thd::after{content:" ↓"}.thn::after{content:" ⇅";opacity:.3}
 tbody tr.dr{border-bottom:1px solid #0a1425;cursor:pointer;transition:background .1s}
@@ -58,38 +57,36 @@ tbody tr.er td{padding:0}
 td{padding:8px 11px;vertical-align:middle}
 
 /* badges */
-.badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap}
+.bdg{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap}
 
 /* expanded */
-.exp-inner{padding:14px 16px;background:#060e1c;border-top:1px solid #162032}
+.ei{padding:14px 16px;background:#060e1c;border-top:1px solid #162032}
 .egrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-@media(max-width:600px){.egrid{grid-template-columns:1fr}}
+@media(max-width:640px){.egrid{grid-template-columns:1fr}}
 .esec{background:#0a1628;border:1px solid #162032;border-radius:8px;padding:10px 12px}
 .esec-t{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#475569;font-weight:600;margin-bottom:8px}
-.kv{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid #0f1e30;gap:6px}
+.kv{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;padding:3px 0;border-bottom:1px solid #0f1e30;gap:8px}
 .kv:last-child{border-bottom:none}
 .kv .k{color:#475569;white-space:nowrap;flex-shrink:0}
 .kv .v{color:#94a3b8;text-align:right;word-break:break-word}
-.rel-list{list-style:none}
-.rel-item{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;font-size:11px;padding:4px 0;border-bottom:1px solid #0f1e30}
-.rel-item:last-child{border-bottom:none}
-.rel-nct{color:#38bdf8;font-weight:600;white-space:nowrap;flex-shrink:0}
-.rel-title{color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
-.rel-st{font-size:9px;padding:1px 5px;border-radius:3px;white-space:nowrap;flex-shrink:0}
-.rel-none{font-size:11px;color:#334155;font-style:italic}
+.rlist{list-style:none}
+.ri{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;font-size:11px;padding:4px 0;border-bottom:1px solid #0f1e30}
+.ri:last-child{border-bottom:none}
+.rnct{color:#38bdf8;font-weight:600;white-space:nowrap;flex-shrink:0}
+.rtitle{color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.rst{font-size:9px;padding:1px 5px;border-radius:3px;white-space:nowrap;flex-shrink:0}
+.rnone{font-size:11px;color:#334155;font-style:italic}
 
 /* cards */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
-.card{background:#07101e;border:0.5px solid #162032;border-radius:10px;padding:12px 13px}
+.card{background:#07101e;border:0.5px solid #162032;border-radius:10px;padding:12px 13px;transition:border-color .1s}
 .card:hover{border-color:#3b82f6}
-.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:6px}
-.card-nct{font-size:10px;color:#38bdf8;font-weight:600;margin-bottom:2px}
-.card-drug{font-size:13px;color:#f0f9ff;font-weight:600}
-.card-ttl{font-size:11px;color:#64748b;line-height:1.5;margin-bottom:7px;
-  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px}
-.card-foot{display:flex;justify-content:space-between;align-items:center;font-size:10px;
-  border-top:1px solid #162032;padding-top:6px}
+.ctop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:6px}
+.cnct{font-size:10px;color:#38bdf8;font-weight:600;margin-bottom:2px}
+.cdrug{font-size:13px;color:#f0f9ff;font-weight:600}
+.cttl{font-size:11px;color:#64748b;line-height:1.5;margin-bottom:7px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ctags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px}
+.cfoot{display:flex;justify-content:space-between;align-items:center;font-size:10px;border-top:1px solid #162032;padding-top:6px}
 
 .footer{margin-top:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:10px;color:#1e3a5f}
 </style>
@@ -97,67 +94,123 @@ td{padding:8px 11px;vertical-align:middle}
 <body>
 
 <div class="hdr">
-  <div class="hdr-top">ClinicalTrials.gov · Phase II · Live API · All Statuses</div>
-  <div class="hdr-title">NSCLC + Basket — Mutation-Targeted Therapy Finder</div>
-  <div class="hdr-sub">Advanced / Metastatic · All genetic mutations · Click any row → Phase 1 &amp; 3 companion studies</div>
+  <div class="hdr-tag">ClinicalTrials.gov · Phase II · Live API · All Statuses</div>
+  <div class="hdr-h1">NSCLC + Basket — Mutation-Targeted Therapy Finder</div>
+  <div class="hdr-sub">Advanced / Metastatic · All genetic mutations · Click any row to see Phase 1 &amp; 3 companions</div>
 </div>
 
 <div class="body" id="app">
   <div style="text-align:center;padding:70px 0;color:#475569">
     <div style="font-size:10px;letter-spacing:.2em;color:#3b82f6;margin-bottom:12px;text-transform:uppercase">Connecting to ClinicalTrials.gov…</div>
     <div style="font-size:30px;animation:spin 1s linear infinite;display:inline-block">⟳</div>
+    <div style="font-size:11px;margin-top:14px" id="init-msg">Fetching Phase 2 lung cancer trials…</div>
   </div>
 </div>
 
 <script>
-/* ───────────────────────────────────────────────────────
-   SEARCH PLAN
-   Each entry is one API call to ClinicalTrials.gov.
-   NO overallStatus filter → returns ALL statuses.
-   Studies are tagged with the mutation hint directly —
-   no drug-name matching needed to include a result.
-─────────────────────────────────────────────────────── */
-const SEARCHES = [
-  {mut:"EGFR",      q:"EGFR mutation osimertinib erlotinib gefitinib afatinib dacomitinib",  c:"non-small cell lung cancer"},
-  {mut:"EGFR",      q:"EGFR exon 20 insertion sunvozertinib mobocertinib zipalertinib furmonertinib", c:"non-small cell lung cancer"},
-  {mut:"EGFR",      q:"EGFR resistance T790M C797S lazertinib aumolertinib alflutinib BLU-701", c:"non-small cell lung cancer"},
-  {mut:"ALK",       q:"ALK fusion alectinib brigatinib lorlatinib ensartinib ceritinib iruplinalkib", c:"non-small cell lung cancer"},
-  {mut:"ROS1",      q:"ROS1 fusion repotrectinib taletrectinib entrectinib",                 c:"non-small cell lung cancer"},
-  {mut:"KRAS G12C", q:"KRAS G12C sotorasib adagrasib garsorasib glecirasib divarasib JDQ443", c:"non-small cell lung cancer"},
-  {mut:"KRAS",      q:"KRAS G12D G12V pan-KRAS RMC-6236 MRTX1133 RMC-9805",                 c:"non-small cell lung cancer"},
-  {mut:"MET",       q:"MET exon 14 skipping tepotinib capmatinib savolitinib vebreltinib",   c:"non-small cell lung cancer"},
-  {mut:"MET",       q:"MET amplification crizotinib glumetinib bozitinib elzovantinib APL-101", c:"non-small cell lung cancer"},
-  {mut:"RET",       q:"RET fusion selpercatinib pralsetinib BOS172738",                      c:"non-small cell lung cancer"},
-  {mut:"HER2",      q:"HER2 ERBB2 mutation amplification zongertinib pyrotinib poziotinib trastuzumab deruxtecan", c:"non-small cell lung cancer"},
-  {mut:"HER2",      q:"HER2 tucatinib neratinib sevabertinib BAY2927088 lapatinib",          c:"non-small cell lung cancer"},
-  {mut:"HER3",      q:"HER3 patritumab deruxtecan U3-1402 HERTHENA ifinatamab deruxtecan",   c:"non-small cell lung cancer"},
-  {mut:"NTRK",      q:"NTRK TRK fusion larotrectinib selitrectinib repotrectinib entrectinib", c:"non-small cell lung cancer"},
-  {mut:"BRAF",      q:"BRAF V600 mutation dabrafenib trametinib encorafenib vemurafenib",    c:"non-small cell lung cancer"},
-  {mut:"MEK",       q:"MEK mutation selumetinib cobimetinib binimetinib trametinib",          c:"non-small cell lung cancer"},
-  {mut:"FGFR",      q:"FGFR fusion amplification mutation erdafitinib futibatinib pemigatinib infigratinib", c:"non-small cell lung cancer"},
-  {mut:"NRG1",      q:"NRG1 fusion zenocutuzumab seribantumab MCLA-128",                     c:"non-small cell lung cancer"},
-  {mut:"PIK3CA",    q:"PIK3CA PI3K mutation alpelisib copanlisib idelalisib buparlisib",      c:"non-small cell lung cancer"},
-  {mut:"PARP",      q:"PARP inhibitor olaparib rucaparib niraparib veliparib talazoparib",   c:"non-small cell lung cancer"},
-  {mut:"SMARCA4",   q:"SMARCA4 SWI SNF tazemetostat ARID1A",                                 c:"non-small cell lung cancer"},
-  {mut:"STK11",     q:"STK11 LKB1 KEAP1 mutation targeted therapy",                          c:"non-small cell lung cancer"},
-  {mut:"EGFR/MET",  q:"amivantamab EGFR MET bispecific JNJ-61186372",                        c:"non-small cell lung cancer"},
-  {mut:"CDK4/6",    q:"CDK4 CDK6 palbociclib ribociclib abemaciclib",                        c:"non-small cell lung cancer"},
-  {mut:"HIF2α",     q:"HIF2alpha HIF-2 belzutifan MK-6482 PT2977",                          c:"non-small cell lung cancer"},
-  {mut:"BASKET",    q:"basket trial mutation agnostic biomarker selected targeted therapy NSCLC lung", c:"solid tumor"},
-  {mut:"BASKET",    q:"tumor agnostic tissue agnostic histology independent NSCLC targeted therapy TKI", c:"lung cancer"},
-];
+/* ══════════════════════════════════════════════════════
+   SAME APPROACH AS THE WORKING PHASE 3 APP:
+   • ONE broad query to CTG
+   • Sequential page-by-page fetching
+   • Client-side drug-name matching for mutation tagging
+   • No overallStatus filter → all statuses returned
+══════════════════════════════════════════════════════ */
 
-/* ── Colors ────────────────────────────────────────── */
-const MC = {
-  EGFR:"#f97316",ALK:"#a78bfa",ROS1:"#34d399",MET:"#60a5fa",RET:"#fb7185",
-  "KRAS G12C":"#eab308",KRAS:"#d97706",HER2:"#e879f9",HER3:"#c084fc",
-  NTRK:"#2dd4bf",BRAF:"#f43f5e",MEK:"#f59e0b",FGFR:"#06b6d4",
-  NRG1:"#7c3aed",PIK3CA:"#84cc16",PARP:"#d946ef",SMARCA4:"#8b5cf6",
-  STK11:"#78716c","EGFR/MET":"#fb923c","CDK4/6":"#0ea5e9","HIF2α":"#6366f1",
-  BASKET:"#a78bfa",Other:"#94a3b8",
+const API = "https://clinicaltrials.gov/api/v2/studies";
+const MAX_PAGES = 8;   // 8 × 100 = up to 800 studies scanned
+
+/* ── Drug → Target map (same as working Phase 3 app) ── */
+const DRUG_TARGET = {
+  // EGFR
+  osimertinib:"EGFR",tagrisso:"EGFR",erlotinib:"EGFR",tarceva:"EGFR",
+  gefitinib:"EGFR",iressa:"EGFR",afatinib:"EGFR",gilotrif:"EGFR",
+  dacomitinib:"EGFR",vizimpro:"EGFR",lazertinib:"EGFR",leclaza:"EGFR",
+  furmonertinib:"EGFR",aumolertinib:"EGFR",alflutinib:"EGFR",zipalertinib:"EGFR",
+  sunvozertinib:"EGFR",mobocertinib:"EGFR",exkivity:"EGFR",
+  "blu-945":"EGFR","blu-701":"EGFR",rezivertinib:"EGFR",almonertinib:"EGFR",
+  avitinib:"EGFR",nazartinib:"EGFR","hs-10296":"EGFR",azd9291:"EGFR",
+  befotertinib:"EGFR",epitinib:"EGFR",olmutinib:"EGFR",rociletinib:"EGFR",
+  naquotinib:"EGFR","azd3759":"EGFR",
+  // ALK
+  alectinib:"ALK",alecensa:"ALK",brigatinib:"ALK",alunbrig:"ALK",
+  lorlatinib:"ALK",lorbrena:"ALK",ensartinib:"ALK",iruplinalkib:"ALK",
+  envonalkib:"ALK",ceritinib:"ALK",zykadia:"ALK","tpx-0131":"ALK","nvl-655":"ALK",
+  belizatinib:"ALK",
+  // ROS1  (entrectinib shared; listed under NTRK too)
+  repotrectinib:"ROS1",augtyro:"ROS1",taletrectinib:"ROS1","ds-6051b":"ROS1",
+  // NTRK
+  larotrectinib:"NTRK",vitrakvi:"NTRK",entrectinib:"NTRK",rozlytrek:"NTRK",selitrectinib:"NTRK",
+  // MET
+  tepotinib:"MET",tepmetko:"MET",capmatinib:"MET",tabrecta:"MET",
+  savolitinib:"MET",glumetinib:"MET",bozitinib:"MET",vebreltinib:"MET",
+  elzovantinib:"MET","apl-101":"MET",glesatinib:"MET",merestinib:"MET",
+  tivantinib:"MET",crizotinib:"MET",xalkori:"MET",
+  // RET
+  selpercatinib:"RET",retevmo:"RET",pralsetinib:"RET",gavreto:"RET",
+  "bos172738":"RET","tpx-0046":"RET","ds-5010":"RET",
+  // KRAS G12C
+  sotorasib:"KRAS G12C",lumakras:"KRAS G12C",adagrasib:"KRAS G12C",
+  krazati:"KRAS G12C",garsorasib:"KRAS G12C",glecirasib:"KRAS G12C",
+  jdq443:"KRAS G12C",divarasib:"KRAS G12C","ly3537982":"KRAS G12C",
+  "d-1553":"KRAS G12C","gdc-6036":"KRAS G12C","amg-510":"KRAS G12C","mrtx849":"KRAS G12C",
+  // KRAS other
+  "mrtx1133":"KRAS G12D","rmc-9805":"KRAS G12D","rmc-6236":"KRAS","hrs-4642":"KRAS G12D",
+  // HER2
+  zongertinib:"HER2",hernexeos:"HER2",pyrotinib:"HER2",poziotinib:"HER2",
+  tucatinib:"HER2",tukysa:"HER2",neratinib:"HER2",nerlynx:"HER2",
+  sevabertinib:"HER2","bay 2927088":"HER2",lapatinib:"HER2",tykerb:"HER2",
+  "trastuzumab deruxtecan":"HER2","t-dxd":"HER2","ds-8201":"HER2",enhertu:"HER2",
+  mobocertinib:"HER2",  // exon20ins also HER2-adjacent
+  // HER3
+  "patritumab deruxtecan":"HER3","u3-1402":"HER3","ifinatamab deruxtecan":"HER3",
+  // BRAF
+  dabrafenib:"BRAF",tafinlar:"BRAF",vemurafenib:"BRAF",zelboraf:"BRAF",
+  encorafenib:"BRAF",braftovi:"BRAF","bgb-283":"BRAF",
+  // MEK
+  trametinib:"MEK",mekinist:"MEK",cobimetinib:"MEK",cotellic:"MEK",
+  binimetinib:"MEK",mectovi:"MEK",selumetinib:"MEK",koselugo:"MEK",
+  // FGFR
+  erdafitinib:"FGFR",balversa:"FGFR",infigratinib:"FGFR",truseltiq:"FGFR",
+  pemigatinib:"FGFR",pemazyre:"FGFR",futibatinib:"FGFR",lytgobi:"FGFR",
+  "azd4547":"FGFR","bgj398":"FGFR",derazantinib:"FGFR",
+  // NRG1
+  zenocutuzumab:"NRG1",seribantumab:"NRG1","mcla-128":"NRG1",
+  // PIK3CA / PI3K
+  alpelisib:"PIK3CA",piqray:"PIK3CA",copanlisib:"PIK3CA",aliqopa:"PIK3CA",
+  idelalisib:"PIK3CA",zydelig:"PIK3CA",buparlisib:"PIK3CA",taselisib:"PIK3CA",
+  "gdc-0077":"PIK3CA",inavolisib:"PIK3CA",
+  // PARP
+  olaparib:"PARP",lynparza:"PARP",rucaparib:"PARP",rubraca:"PARP",
+  niraparib:"PARP",zejula:"PARP",talazoparib:"PARP",talzenna:"PARP",
+  veliparib:"PARP","abt-888":"PARP",
+  // mTOR
+  everolimus:"mTOR",afinitor:"mTOR",temsirolimus:"mTOR",torisel:"mTOR",
+  // CDK4/6
+  palbociclib:"CDK4/6",ibrance:"CDK4/6",ribociclib:"CDK4/6",kisqali:"CDK4/6",
+  abemaciclib:"CDK4/6",verzenio:"CDK4/6",
+  // HIF2α
+  belzutifan:"HIF2α",welireg:"HIF2α","mk-6482":"HIF2α","pt2977":"HIF2α",
+  // SMARCA4
+  tazemetostat:"SMARCA4",tazverik:"SMARCA4",
+  // TP53
+  "apr-246":"TP53",eprenetapopt:"TP53","pc14586":"TP53",
+  // EGFR+MET bispecific
+  amivantamab:"EGFR/MET",rybrevant:"EGFR/MET","jnj-61186372":"EGFR/MET",
+  // STK11/KEAP1 targeted
+  omaveloxolone:"STK11/KEAP1",
 };
 
-const SS = {
+/* ── Colors ── */
+const MUT_C = {
+  EGFR:"#f97316",ALK:"#a78bfa",ROS1:"#34d399",MET:"#60a5fa",RET:"#fb7185",
+  "KRAS G12C":"#eab308","KRAS G12D":"#ca8a04",KRAS:"#d97706",
+  HER2:"#e879f9",HER3:"#c084fc",NTRK:"#2dd4bf",BRAF:"#f43f5e",MEK:"#f59e0b",
+  FGFR:"#06b6d4",NRG1:"#7c3aed",PIK3CA:"#84cc16",PARP:"#d946ef",
+  mTOR:"#10b981","CDK4/6":"#0ea5e9","HIF2α":"#6366f1",SMARCA4:"#8b5cf6",
+  TP53:"#ef4444","EGFR/MET":"#fb923c","STK11/KEAP1":"#78716c",
+};
+
+const ST_S = {
   RECRUITING:              {l:"Recruiting",    bg:"#052e16",tc:"#4ade80"},
   ACTIVE_NOT_RECRUITING:   {l:"Active",        bg:"#1c1400",tc:"#fbbf24"},
   COMPLETED:               {l:"Completed",     bg:"#0c1a3d",tc:"#818cf8"},
@@ -169,136 +222,171 @@ const SS = {
   UNKNOWN:                 {l:"Unknown",       bg:"#1e293b",tc:"#64748b"},
 };
 
-/* ── State ─────────────────────────────────────────── */
-const API = "https://clinicaltrials.gov/api/v2/studies";
-let studies=[], seen=new Set(), ndone=0, ntotal=SEARCHES.length, busy=true;
-let sk="startDate", sd="desc";
-let fM="All", fS="All", fT="All", fQ="";   // ← all default to "All"
-let curView="table", expId=null;
-const relC={};
+/* ── Basket detection keywords ── */
+const BASKET_KW = [
+  "basket","tumor agnostic","tissue agnostic","agnostic",
+  "multiple tumor","pan-tumor","biomarker-selected","histology-independent",
+  "histology agnostic","molecularly selected","biomarker driven",
+];
 
-/* ── Parse one raw CTG study ───────────────────────── */
-function parse(raw, hintMut){
-  const p = raw.protocolSection;
-  const id = p?.identificationModule;
-  const sm = p?.statusModule;
-  const sp = p?.sponsorCollaboratorsModule;
-  const des = p?.designModule;
-  const cond = p?.conditionsModule;
-  const desc = p?.descriptionModule;
-  const arms = p?.armsInterventionsModule;
+/* ── Detect drug + target from one raw study ── */
+function detectTarget(raw) {
+  const p   = raw.protocolSection;
+  const ivs = p?.armsInterventionsModule?.interventions || [];
+  const title = (p?.identificationModule?.briefTitle    || "").toLowerCase();
+  const offic = (p?.identificationModule?.officialTitle || "").toLowerCase();
 
-  // Primary drug: first drug/biologic intervention
-  const ivs = arms?.interventions || [];
-  const drugIv = ivs.find(i=>["DRUG","BIOLOGICAL","COMBINATION_PRODUCT"].includes(i.type));
-  const drug = drugIv?.name || "—";
+  // 1. Scan interventions
+  for (const iv of ivs) {
+    if (!["DRUG","BIOLOGICAL","COMBINATION_PRODUCT"].includes(iv.type)) continue;
+    const name = (iv.name || "").toLowerCase();
+    for (const [kw, tgt] of Object.entries(DRUG_TARGET)) {
+      if (name.includes(kw)) return { target: tgt, drug: iv.name };
+    }
+  }
+  // 2. Scan title / official title
+  for (const [kw, tgt] of Object.entries(DRUG_TARGET)) {
+    if (title.includes(kw) || offic.includes(kw)) {
+      return { target: tgt, drug: kw.charAt(0).toUpperCase()+kw.slice(1) };
+    }
+  }
+  return null;
+}
 
-  // Arm type: does the primary drug appear alone in any experimental arm?
+/* ── Parse raw study into our model ── */
+function parseStudy(raw) {
+  const t = detectTarget(raw);
+  if (!t) return null;   // skip if no known targeted agent found
+
+  const p   = raw.protocolSection;
+  const idm = p?.identificationModule;
+  const stm = p?.statusModule;
+  const spm = p?.sponsorCollaboratorsModule;
+  const dsm = p?.designModule;
+  const cdm = p?.conditionsModule;
+  const dsc = p?.descriptionModule;
+  const arm = p?.armsInterventionsModule;
+
+  // Arm type
   let armType = "UNKNOWN";
-  const armGrps = arms?.armGroups || [];
-  for(const a of armGrps){
-    if(a.type !== "EXPERIMENTAL") continue;
-    const names = a.interventionNames || [];
-    armType = names.length === 1 ? "MONO" : names.length > 1 ? "COMBO" : armType;
+  for (const a of (arm?.armGroups || [])) {
+    if (a.type !== "EXPERIMENTAL") continue;
+    armType = (a.interventionNames||[]).length <= 1 ? "MONO" : "COMBO";
     break;
   }
 
-  // Trial type: BASKET if keywords suggest it
-  const allText = [
-    id?.briefTitle||"",
-    (cond?.conditions||[]).join(" "),
-    (cond?.keywords||[]).join(" "),
-    (desc?.briefSummary||"").slice(0,400),
+  // Trial type — basket or NSCLC-specific
+  const allTxt = [
+    idm?.briefTitle||"",
+    (cdm?.conditions||[]).join(" "),
+    (cdm?.keywords||[]).join(" "),
+    (dsc?.briefSummary||"").slice(0,300),
   ].join(" ").toLowerCase();
-  const basketKw = ["basket","tumor agnostic","tissue agnostic","multiple tumor type",
-    "pan-tumor","biomarker-selected","histology-independent","agnostic trial"];
-  const trialType = (hintMut==="BASKET" || basketKw.some(k=>allText.includes(k))) ? "BASKET" : "NSCLC";
+  const trialType = BASKET_KW.some(k=>allTxt.includes(k)) ? "BASKET" : "NSCLC";
 
-  // Mutation: use the search hint directly — no complex matching
-  const mutation = hintMut === "BASKET" ? "BASKET" : hintMut;
-
-  const sdStruct = sm?.startDateStruct;
+  const sdS = stm?.startDateStruct;
 
   return {
-    nctId:        id?.nctId,
-    title:        id?.briefTitle || "",
-    status:       sm?.overallStatus || "UNKNOWN",
-    startDate:    sdStruct?.date || null,
-    startType:    sdStruct?.type || null,   // ACTUAL | ESTIMATED
-    endDate:      sm?.primaryCompletionDateStruct?.date || null,
-    sponsor:      sp?.leadSponsor?.name || "—",
-    mutation,
-    drug,
-    arm:          armType,
+    nctId:      idm?.nctId,
+    title:      idm?.briefTitle || "",
+    target:     t.target,
+    drug:       t.drug,
+    status:     stm?.overallStatus || "UNKNOWN",
+    startDate:  sdS?.date  || null,
+    startType:  sdS?.type  || null,   // "ACTUAL" | "ESTIMATED"
+    endDate:    stm?.primaryCompletionDateStruct?.date || null,
+    sponsor:    spm?.leadSponsor?.name || "—",
+    enrollment: dsm?.enrollmentInfo?.count || null,
+    armType,
     trialType,
-    enrollment:   des?.enrollmentInfo?.count || null,
-    summary:      (desc?.briefSummary||"").slice(0,380),
-    conditions:   (cond?.conditions||[]).join("; "),
-    phases:       des?.phases || [],
+    summary:    (dsc?.briefSummary||"").slice(0,380),
+    conditions: (cdm?.conditions||[]).join("; "),
   };
 }
 
-/* ── API: run all searches in parallel ─────────────── */
-async function runAll(){
-  busy=true; render();
-  await Promise.all(SEARCHES.map(async (sr)=>{
-    try{
+/* ══ State ══════════════════════════════════════════ */
+let studies = [];
+let loading  = true;
+let scanned  = 0;      // raw studies scanned
+let pagesDone = 0;
+
+/* filters — ALL default to "All" so nothing is hidden */
+let sk="startDate", sd_="desc";
+let fT="All", fS="All", fTY="All", fQ="";
+let curView="table", expId=null;
+const relCache = {};  // nctId → {p1,p3,loading}
+
+/* ══ Sequential fetch ═══════════════════════════════
+   Same pattern as the working Phase 3 app:
+   one broad query, page by page.
+════════════════════════════════════════════════════ */
+async function loadStudies() {
+  loading = true;
+  let nextToken = null;
+
+  for (let page = 0; page < MAX_PAGES; page++) {
+    try {
       const params = new URLSearchParams({
-        "query.cond": sr.c,
-        "query.term": sr.q,
-        "filter.phase": "PHASE2",
-        // NO overallStatus filter → all statuses returned
-        "pageSize": "50",
-        "format": "json",
+        "query.cond":  "lung cancer",
+        "filter.phase":"PHASE2",
+        "aggFilters":  "studyType:int",
+        // NO overallStatus filter → returns ALL statuses
+        "pageSize":    "100",
+        "format":      "json",
       });
+      if (nextToken) params.append("pageToken", nextToken);
+
       const res = await fetch(`${API}?${params}`);
-      if(!res.ok) throw new Error("HTTP "+res.status);
+      if (!res.ok) throw new Error("HTTP "+res.status);
       const data = await res.json();
-      let added = 0;
-      for(const raw of (data.studies||[])){
-        const nctId = raw.protocolSection?.identificationModule?.nctId;
-        if(!nctId || seen.has(nctId)) continue;
-        seen.add(nctId);
-        studies.push(parse(raw, sr.mut));
-        added++;
+
+      const raw = data.studies || [];
+      scanned += raw.length;
+      nextToken = data.nextPageToken || null;
+
+      for (const r of raw) {
+        const s = parseStudy(r);
+        if (s) studies.push(s);
       }
-      console.log(`[${sr.mut}] "${sr.q.slice(0,40)}" → ${added} new studies`);
-    } catch(e){
-      console.warn("Search failed:", sr.mut, e.message);
-    } finally {
-      ndone++;
-      render();
+
+      pagesDone = page + 1;
+      render();   // update display after each page
+
+      if (!nextToken) break;
+    } catch(e) {
+      console.error("Fetch error page", page, e);
+      break;
     }
-  }));
-  busy = false;
+  }
+
+  loading = false;
   render();
 }
 
-/* ── Load related Phase 1 / 3 ──────────────────────── */
-async function loadRel(nctId, drug, mutation){
-  if(relC[nctId]) return;
-  relC[nctId] = {p1:[],p3:[],loading:true};
-  repaintExp();
-  const term = drug !== "—" ? drug : mutation;
-  const [p1,p3] = await Promise.all([
-    fetchRelated(term,"PHASE1"),
-    fetchRelated(term,"PHASE3"),
+/* ══ Related Phase 1 / 3 ════════════════════════════ */
+async function loadRelated(nctId, drug) {
+  if (relCache[nctId]) return;
+  relCache[nctId] = { p1:[], p3:[], loading:true };
+  repaintExpanded();
+  const [p1, p3] = await Promise.all([
+    fetchPhase(drug, "PHASE1"),
+    fetchPhase(drug, "PHASE3"),
   ]);
-  relC[nctId] = {p1,p3,loading:false};
-  repaintExp();
+  relCache[nctId] = { p1, p3, loading:false };
+  repaintExpanded();
 }
 
-async function fetchRelated(term, phase){
-  try{
-    const p = new URLSearchParams({
-      "query.term": term,
-      "filter.phase": phase,
-      "query.cond": "lung cancer",
-      "pageSize": "8",
-      "format": "json",
+async function fetchPhase(drug, phase) {
+  try {
+    const params = new URLSearchParams({
+      "query.term":  drug,
+      "filter.phase":phase,
+      "query.cond":  "lung cancer",
+      "pageSize":    "8",
+      "format":      "json",
     });
-    const r = await fetch(`${API}?${p}`);
-    if(!r.ok) return [];
+    const r = await fetch(`${API}?${params}`);
+    if (!r.ok) return [];
     const d = await r.json();
     return (d.studies||[]).map(s=>({
       nctId:     s.protocolSection?.identificationModule?.nctId,
@@ -309,145 +397,159 @@ async function fetchRelated(term, phase){
   } catch { return []; }
 }
 
-/* ── Filter / Sort ──────────────────────────────────── */
-function getFiltered(){
+/* ══ Filter / Sort ══════════════════════════════════ */
+function getFiltered() {
   let s = studies;
-  if(fM!=="All") s = s.filter(x=>x.mutation===fM);
-  if(fS!=="All") s = s.filter(x=>x.status===fS);
-  if(fT!=="All") s = s.filter(x=>x.trialType===fT);
-  if(fQ){
-    const q=fQ.toLowerCase();
-    s=s.filter(x=>[x.title,x.drug,x.nctId,x.sponsor,x.mutation,x.conditions]
-      .some(v=>v&&v.toLowerCase().includes(q)));
+  if (fT  !== "All") s = s.filter(x => x.target   === fT);
+  if (fS  !== "All") s = s.filter(x => x.status   === fS);
+  if (fTY !== "All") s = s.filter(x => x.trialType === fTY);
+  if (fQ) {
+    const q = fQ.toLowerCase();
+    s = s.filter(x =>
+      [x.title,x.drug,x.nctId,x.sponsor,x.target,x.conditions]
+        .some(v => v && v.toLowerCase().includes(q))
+    );
   }
-  return [...s].sort((a,b)=>{
-    const av=a[sk]||"", bv=b[sk]||"";
-    return sd==="asc"?String(av).localeCompare(String(bv)):String(bv).localeCompare(String(av));
+  return [...s].sort((a,b) => {
+    const av = a[sk]||"", bv = b[sk]||"";
+    return sd_==="asc"
+      ? String(av).localeCompare(String(bv))
+      : String(bv).localeCompare(String(av));
   });
 }
-function cnt(k){ const m={}; studies.forEach(s=>{m[s[k]]=(m[s[k]]||0)+1}); return m; }
 
-/* ── Badges ─────────────────────────────────────────── */
-function mBadge(m){
-  const c=MC[m]||"#94a3b8";
-  return `<span class="badge" style="background:${c}18;color:${c};border:1px solid ${c}40">${m}</span>`;
+function cntBy(key) {
+  const m = {};
+  studies.forEach(s => { m[s[key]] = (m[s[key]]||0)+1; });
+  return m;
 }
-function sBadge(st){
-  const s=SS[st]||SS.UNKNOWN;
-  return `<span class="badge" style="background:${s.bg};color:${s.tc}">${s.l}</span>`;
+
+/* ══ Badge helpers ══════════════════════════════════ */
+function mBdg(t) {
+  const c = MUT_C[t] || "#94a3b8";
+  return `<span class="bdg" style="background:${c}18;color:${c};border:1px solid ${c}40">${t}</span>`;
 }
-function aBadge(a){
-  if(a==="MONO") return `<span style="font-size:10px;font-weight:600;color:#4ade80">● MONO</span>`;
-  if(a==="COMBO") return `<span style="font-size:10px;font-weight:600;color:#fbbf24">◐ COMBO</span>`;
+function sBdg(st) {
+  const s = ST_S[st] || ST_S.UNKNOWN;
+  return `<span class="bdg" style="background:${s.bg};color:${s.tc}">${s.l}</span>`;
+}
+function aBdg(a) {
+  if (a==="MONO")  return `<span style="font-size:10px;font-weight:600;color:#4ade80">● MONO</span>`;
+  if (a==="COMBO") return `<span style="font-size:10px;font-weight:600;color:#fbbf24">◐ COMBO</span>`;
   return `<span style="font-size:10px;color:#334155">—</span>`;
 }
-function tBadge(t){
+function tBdg(t) {
   return t==="BASKET"
     ? `<span style="font-size:10px;font-weight:600;color:#a78bfa">⬡ BASKET</span>`
     : `<span style="font-size:10px;font-weight:600;color:#38bdf8">◆ NSCLC</span>`;
 }
-function thC(k){ return sk===k?(sd==="asc"?"tha":"thd"):"thn"; }
-function rsBadge(st){const s=SS[st]||SS.UNKNOWN;return `<span class="rel-st" style="background:${s.bg};color:${s.tc}">${s.l}</span>`;}
-function sdStr(study){
-  if(!study.startDate) return "—";
-  const tag = study.startType==="ACTUAL"?" (A)":study.startType==="ESTIMATED"?" (E)":"";
-  return study.startDate+tag;
+function thC(k) { return sk===k ? (sd_==="asc"?"tha":"thd") : "thn"; }
+function sdDisp(s) {
+  if (!s.startDate) return "—";
+  const tag = s.startType==="ACTUAL" ? " (A)" : s.startType==="ESTIMATED" ? " (E)" : "";
+  return s.startDate + tag;
+}
+function rsBdg(st) {
+  const s = ST_S[st]||ST_S.UNKNOWN;
+  return `<span class="rst" style="background:${s.bg};color:${s.tc}">${s.l}</span>`;
 }
 
-/* ── Repaint expanded row ────────────────────────────── */
-function repaintExp(){
-  if(!expId) return;
+/* ══ Repaint expanded row ════════════════════════════ */
+function repaintExpanded() {
+  if (!expId) return;
   const el = document.getElementById("exp-"+expId);
-  if(!el) return;
-  const s = studies.find(x=>x.nctId===expId);
-  if(!s) return;
-  const rel = relC[expId];
+  if (!el) return;
+  const s = studies.find(x => x.nctId===expId);
+  if (!s) return;
+  const rel = relCache[expId];
 
   let relHtml = "";
-  if(!rel){
-    relHtml = `<p class="rel-none">Fetching…</p>`;
-  } else if(rel.loading){
-    relHtml = `<p class="rel-none" style="display:flex;align-items:center;gap:6px">
+  if (!rel) {
+    relHtml = `<p class="rnone">Loading…</p>`;
+  } else if (rel.loading) {
+    relHtml = `<p class="rnone" style="display:flex;align-items:center;gap:6px">
       <span style="animation:spin 1s linear infinite;display:inline-block">⟳</span>
       Querying Phase 1 &amp; 3 from ClinicalTrials.gov…</p>`;
   } else {
-    const mkList = (arr,ph) => {
-      if(!arr.length) return `<li class="rel-item"><span class="rel-none">No ${ph} lung cancer studies found for "${s.drug!=="—"?s.drug:s.mutation}"</span></li>`;
-      return arr.map(r=>`<li class="rel-item">
-        <a href="https://clinicaltrials.gov/study/${r.nctId}" target="_blank" class="rel-nct">${r.nctId}</a>
-        ${rsBadge(r.status)}
-        <span class="rel-title">${r.title}</span>
+    const mkList = (arr, ph) => {
+      if (!arr.length) return `<li class="ri"><span class="rnone">No ${ph} lung cancer studies found for "${s.drug}"</span></li>`;
+      return arr.map(r=>`<li class="ri">
+        <a href="https://clinicaltrials.gov/study/${r.nctId}" target="_blank" class="rnct">${r.nctId}</a>
+        ${rsBdg(r.status)}
+        <span class="rtitle">${r.title}</span>
         ${r.startDate?`<span style="font-size:10px;color:#334155;white-space:nowrap">${r.startDate}</span>`:""}
       </li>`).join("");
     };
     relHtml = `
       <div style="margin-bottom:10px">
         <div class="esec-t" style="color:#a78bfa">Phase 1 — ${rel.p1.length} found</div>
-        <ul class="rel-list">${mkList(rel.p1,"Phase 1")}</ul>
+        <ul class="rlist">${mkList(rel.p1,"Phase 1")}</ul>
       </div>
       <div>
         <div class="esec-t" style="color:#4ade80">Phase 3 — ${rel.p3.length} found</div>
-        <ul class="rel-list">${mkList(rel.p3,"Phase 3")}</ul>
+        <ul class="rlist">${mkList(rel.p3,"Phase 3")}</ul>
       </div>`;
   }
 
-  el.innerHTML = `<div class="exp-inner">
+  el.innerHTML = `<div class="ei">
     <div style="font-size:12px;color:#94a3b8;line-height:1.65;margin-bottom:10px">${s.title}</div>
     <div class="egrid">
       <div class="esec">
-        <div class="esec-t">Study details from ClinicalTrials.gov</div>
+        <div class="esec-t">Study details — ClinicalTrials.gov</div>
         <div class="kv"><span class="k">NCT ID</span>
           <span class="v"><a href="https://clinicaltrials.gov/study/${s.nctId}" target="_blank">${s.nctId} ↗</a></span></div>
         <div class="kv"><span class="k">Study start date</span>
-          <span class="v">${sdStr(s)}</span></div>
+          <span class="v">${sdDisp(s)}</span></div>
         <div class="kv"><span class="k">Est. primary completion</span>
           <span class="v">${s.endDate||"—"}</span></div>
         <div class="kv"><span class="k">Enrollment target</span>
           <span class="v">${s.enrollment?Number(s.enrollment).toLocaleString():"—"}</span></div>
         <div class="kv"><span class="k">Lead sponsor</span>
           <span class="v">${s.sponsor}</span></div>
-        <div class="kv"><span class="k">Overall status</span>
-          <span class="v">${sBadge(s.status)}</span></div>
+        <div class="kv"><span class="k">Status</span>
+          <span class="v">${sBdg(s.status)}</span></div>
         <div class="kv"><span class="k">Primary drug</span>
           <span class="v">${s.drug}</span></div>
-        <div class="kv"><span class="k">Target mutation</span>
-          <span class="v">${mBadge(s.mutation)}</span></div>
+        <div class="kv"><span class="k">Target</span>
+          <span class="v">${mBdg(s.target)}</span></div>
         <div class="kv"><span class="k">Trial type</span>
-          <span class="v">${tBadge(s.trialType)}</span></div>
+          <span class="v">${tBdg(s.trialType)}</span></div>
         <div class="kv"><span class="k">Arm type</span>
-          <span class="v">${aBadge(s.arm)}</span></div>
-        <div class="kv"><span class="k">Conditions (CTG)</span>
-          <span class="v" style="font-size:10px">${(s.conditions||"—").slice(0,160)}</span></div>
+          <span class="v">${aBdg(s.armType)}</span></div>
+        <div class="kv"><span class="k">Conditions (from CTG)</span>
+          <span class="v" style="font-size:10px">${(s.conditions||"—").slice(0,150)}</span></div>
       </div>
       <div class="esec">
-        <div class="esec-t">Companion studies — Phase 1 &amp; 3 (same agent, lung cancer)</div>
+        <div class="esec-t">Companion studies — same drug, lung cancer</div>
         ${relHtml}
       </div>
     </div>
-    ${s.summary?`<div style="font-size:11px;color:#475569;line-height:1.65;border-left:2px solid #162032;padding-left:10px">${s.summary}…</div>`:""}
+    ${s.summary?`<div style="font-size:11px;color:#475569;line-height:1.65;border-left:2px solid #162032;padding-left:10px;margin-top:2px">${s.summary}…</div>`:""}
   </div>`;
 }
 
-/* ── Main render ─────────────────────────────────────── */
-function render(){
-  const f = getFiltered();
-  const mc = cnt("mutation"), sc_ = cnt("status");
-  const muts = Object.entries(mc).sort((a,b)=>b[1]-a[1]);
-  const pct = Math.round((ndone/ntotal)*100);
+/* ══ Main render ════════════════════════════════════ */
+function render() {
+  const f   = getFiltered();
+  const mc  = cntBy("target");
+  const sc_ = cntBy("status");
+  const pct = Math.min(95, Math.round((pagesDone/MAX_PAGES)*100));
 
   const statCards = [
-    {l:"Total",      v:studies.length,                                            c:"#e2e8f0"},
-    {l:"Recruiting", v:studies.filter(s=>s.status==="RECRUITING").length,         c:"#4ade80"},
-    {l:"Active",     v:studies.filter(s=>s.status==="ACTIVE_NOT_RECRUITING").length, c:"#fbbf24"},
-    {l:"Completed",  v:studies.filter(s=>s.status==="COMPLETED").length,          c:"#818cf8"},
-    {l:"Terminated", v:studies.filter(s=>s.status==="TERMINATED").length,         c:"#f87171"},
-    {l:"Basket",     v:studies.filter(s=>s.trialType==="BASKET").length,          c:"#a78bfa"},
-    {l:"Targets",    v:Object.keys(mc).length,                                    c:"#f97316"},
+    {l:"Total matched",  v:studies.length,                                            c:"#e2e8f0"},
+    {l:"Recruiting",     v:studies.filter(s=>s.status==="RECRUITING").length,         c:"#4ade80"},
+    {l:"Active",         v:studies.filter(s=>s.status==="ACTIVE_NOT_RECRUITING").length, c:"#fbbf24"},
+    {l:"Completed",      v:studies.filter(s=>s.status==="COMPLETED").length,          c:"#818cf8"},
+    {l:"Terminated",     v:studies.filter(s=>s.status==="TERMINATED").length,         c:"#f87171"},
+    {l:"Basket trials",  v:studies.filter(s=>s.trialType==="BASKET").length,          c:"#a78bfa"},
+    {l:"Targets",        v:Object.keys(mc).length,                                    c:"#f97316"},
   ];
 
   const stOpts = [["All","All statuses"],
     ...Object.entries(sc_).sort((a,b)=>b[1]-a[1])
-      .map(([s,n])=>[s,`${SS[s]?.l||s} (${n})`])];
+      .map(([s,n])=>[s,`${ST_S[s]?.l||s} (${n})`])];
+
+  const muts = Object.entries(mc).sort((a,b)=>b[1]-a[1]);
 
   document.getElementById("app").innerHTML = `
 
@@ -458,108 +560,104 @@ function render(){
       </div>`).join("")}
     </div>
 
-    ${busy ? `
-    <div class="pbar-wrap">
+    ${loading ? `<div class="prog">
       <span style="font-size:14px;animation:spin 1s linear infinite;display:inline-block">⟳</span>
       <div style="flex:1">
         <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">
-          Querying ClinicalTrials.gov — ${ndone}/${ntotal} searches complete · ${studies.length} trials matched so far
+          Page ${pagesDone}/${MAX_PAGES} · ${scanned} studies scanned · <b style="color:#7dd3fc">${studies.length}</b> mutation-targeted trials found
         </div>
-        <div class="ptrack"><div class="pfill" style="width:${pct}%"></div></div>
+        <div class="pt"><div class="pf" style="width:${pct}%"></div></div>
       </div>
-    </div>` : `
-    <div style="font-size:11px;color:#334155;margin-bottom:10px">
-      ✓ ${ntotal} mutation-specific searches complete · <b style="color:#7dd3fc">${studies.length}</b> unique Phase 2 trials · All statuses shown
+    </div>` : `<div style="font-size:11px;color:#334155;margin-bottom:10px">
+      ✓ Complete — ${scanned} Phase 2 lung cancer trials scanned ·
+      <b style="color:#7dd3fc">${studies.length}</b> mutation-targeted matched · All statuses shown
     </div>`}
 
-    <!-- mutation chips -->
     <div class="chips">
-      <button class="chip" onclick="setM('All')"
-        style="border-color:${fM==="All"?"#3b82f6":"#162032"};background:${fM==="All"?"#0d2340":"transparent"};color:${fM==="All"?"#7dd3fc":"#475569"}">
+      <button class="chip" onclick="fT='All';expId=null;render()"
+        style="border-color:${fT==="All"?"#3b82f6":"#162032"};background:${fT==="All"?"#0d2340":"transparent"};color:${fT==="All"?"#7dd3fc":"#475569"}">
         All · ${studies.length}
       </button>
       ${muts.map(([m,n])=>{
-        const c=MC[m]||"#94a3b8", a=fM===m;
-        return `<button class="chip" onclick="setM('${m.replace(/\\/g,"\\\\").replace(/'/g,"\\'")}') "
+        const c=MUT_C[m]||"#94a3b8", a=fT===m;
+        return `<button class="chip" onclick="fT='${m.replace(/'/g,"\\'")}';expId=null;render()"
           style="border-color:${a?c:"#162032"};background:${a?c+"20":"transparent"};color:${a?c:"#475569"}">
           ${m} · ${n}
         </button>`;
       }).join("")}
     </div>
 
-    <!-- filter row — all default to "All" -->
     <div class="frow">
-      <input type="text" placeholder="Search NCT ID, drug, mutation, sponsor, condition…"
-        value="${fQ.replace(/"/g,"&quot;")}" oninput="setQ(this.value)"/>
-
-      <select onchange="setS(this.value)">
+      <input type="text" placeholder="Search NCT ID, drug, target, sponsor, condition…"
+        value="${fQ.replace(/"/g,"&quot;")}" oninput="fQ=this.value;render()"/>
+      <select onchange="fS=this.value;render()">
         ${stOpts.map(([v,l])=>`<option value="${v}"${fS===v?" selected":""}>${l}</option>`).join("")}
       </select>
-
-      <select onchange="setT(this.value)">
-        <option value="All"${fT==="All"?" selected":""}>NSCLC + Basket</option>
-        <option value="NSCLC"${fT==="NSCLC"?" selected":""}>NSCLC only</option>
-        <option value="BASKET"${fT==="BASKET"?" selected":""}>Basket only</option>
+      <select onchange="fTY=this.value;render()">
+        <option value="All"${fTY==="All"?" selected":""}>NSCLC + Basket</option>
+        <option value="NSCLC"${fTY==="NSCLC"?" selected":""}>NSCLC only</option>
+        <option value="BASKET"${fTY==="BASKET"?" selected":""}>Basket only</option>
       </select>
-
       <div style="display:flex;gap:4px;margin-left:auto">
-        <button class="vbtn${curView==="table"?" on":""}" onclick="setV('table')">⊞ Table</button>
-        <button class="vbtn${curView==="cards"?" on":""}" onclick="setV('cards')">⊟ Cards</button>
+        <button class="vbtn${curView==="table"?" on":""}" onclick="curView='table';render()">⊞ Table</button>
+        <button class="vbtn${curView==="cards"?" on":""}" onclick="curView='cards';render()">⊟ Cards</button>
       </div>
-
       <span style="font-size:11px;color:#334155;white-space:nowrap">
-        <b style="color:#7dd3fc">${f.length}</b> trials shown
+        <b style="color:#7dd3fc">${f.length}</b> shown
       </span>
     </div>
 
     ${curView==="table" ? buildTable(f) : buildCards(f)}
 
     <div class="footer">
-      <span>Source: ClinicalTrials.gov API v2 · Live · ${new Date().toLocaleDateString()} · All statuses · 27 mutation-specific queries</span>
-      <span>(A) = Actual start date · (E) = Estimated · ◆ NSCLC · ⬡ Basket · ● mono · ◐ combo</span>
-    </div>
-  `;
+      <span>ClinicalTrials.gov API v2 · Live · ${new Date().toLocaleDateString()} · All statuses · query: "lung cancer" Phase 2 interventional</span>
+      <span>(A)=Actual start · (E)=Estimated · ◆ NSCLC · ⬡ Basket · ● mono · ◐ combo</span>
+    </div>`;
 
-  if(expId){ const el=document.getElementById("exp-"+expId); if(el) repaintExp(); }
+  if (expId) {
+    const el = document.getElementById("exp-"+expId);
+    if (el) repaintExpanded();
+  }
 }
 
-/* ── Build table ─────────────────────────────────────── */
-function buildTable(f){
+/* ══ Build table ════════════════════════════════════ */
+function buildTable(f) {
   const cols = [
     ["nctId","NCT ID","7%"],
-    ["drug","Primary Drug","12%"],
-    ["mutation","Target","8%"],
+    ["drug","Drug","11%"],
+    ["target","Target","8%"],
     ["status","Status","8%"],
     ["trialType","Type","6%"],
-    ["arm","Arm","6%"],
+    ["armType","Arm","6%"],
     ["startDate","Start Date","9%"],
     ["endDate","Est. End","8%"],
     ["sponsor","Sponsor","15%"],
     ["enrollment","N","5%"],
   ];
   const ths = cols.map(([k,l,w])=>
-    `<th class="${thC(k)}" style="width:${w}" onclick="setK('${k}')">${l}</th>`
+    `<th class="${thC(k)}" style="width:${w}" onclick="if(sk==='${k}'){sd_=sd_==='asc'?'desc':'asc'}else{sk='${k}';sd_='asc'};render()">${l}</th>`
   ).join("") + `<th style="width:20px;background:#0b1628;border-bottom:1px solid #1e293b"></th>`;
 
-  if(!f.length) return `<div class="tw"><table>
-    <thead><tr>${ths}</tr></thead>
-    <tbody><tr><td colspan="${cols.length+1}" style="text-align:center;padding:40px;color:#334155;font-size:12px">
-      ${busy?"Results loading — searches are running in parallel…":"No trials match your filters. Try clearing some filters above."}
-    </td></tr></tbody></table></div>`;
+  if (!f.length) {
+    return `<div class="tw"><table><thead><tr>${ths}</tr></thead>
+      <tbody><tr><td colspan="${cols.length+1}" style="text-align:center;padding:40px;color:#334155;font-size:12px">
+        ${loading ? "Loading — results appear as pages are fetched…" : "No trials matched. Try clearing all filters."}
+      </td></tr></tbody></table></div>`;
+  }
 
   const rows = f.map(s => {
     const isE = expId===s.nctId;
     const sdD = s.startDate
-      ? `${s.startDate}<span style="font-size:9px;color:#334155;margin-left:2px">${s.startType==="ACTUAL"?"(A)":s.startType==="ESTIMATED"?"(E)":""}</span>`
+      ? s.startDate + `<span style="font-size:9px;color:#334155;margin-left:2px">${s.startType==="ACTUAL"?"(A)":s.startType==="ESTIMATED"?"(E)":""}</span>`
       : "—";
     return `
       <tr class="dr${isE?" open":""}" onclick="toggleExp('${s.nctId}')">
         <td style="color:#38bdf8;font-weight:600;white-space:nowrap">${s.nctId}</td>
-        <td style="color:#f0f9ff;font-weight:500;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.drug}</td>
-        <td>${mBadge(s.mutation)}</td>
-        <td>${sBadge(s.status)}</td>
-        <td>${tBadge(s.trialType)}</td>
-        <td>${aBadge(s.arm)}</td>
+        <td style="color:#f0f9ff;font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.drug}</td>
+        <td>${mBdg(s.target)}</td>
+        <td>${sBdg(s.status)}</td>
+        <td>${tBdg(s.trialType)}</td>
+        <td>${aBdg(s.armType)}</td>
         <td style="color:#94a3b8;font-size:11px;white-space:nowrap">${sdD}</td>
         <td style="color:#475569;font-size:11px;white-space:nowrap">${s.endDate||"—"}</td>
         <td style="color:#64748b;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">${s.sponsor}</td>
@@ -574,24 +672,27 @@ function buildTable(f){
   return `<div class="tw"><table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
-/* ── Build cards ─────────────────────────────────────── */
-function buildCards(f){
-  if(!f.length) return `<div style="text-align:center;padding:40px;color:#334155;font-size:12px">
-    ${busy?"Loading — searches running…":"No trials match your filters."}</div>`;
-  return `<div class="grid">${f.map(s=>{
-    const col=MC[s.mutation]||"#94a3b8";
-    const sdD=s.startDate?`${s.startDate}${s.startType==="ACTUAL"?" (A)":s.startType==="ESTIMATED"?" (E)":""}`:null;
+/* ══ Build cards ════════════════════════════════════ */
+function buildCards(f) {
+  if (!f.length) return `<div style="text-align:center;padding:40px;color:#334155;font-size:12px">
+    ${loading?"Loading…":"No trials matched. Try clearing all filters."}</div>`;
+  return `<div class="grid">${f.map(s => {
+    const col = MUT_C[s.target]||"#94a3b8";
+    const sdD = s.startDate ? sdDisp(s) : null;
     return `<div class="card" style="border-top:2px solid ${col};border-left:0.5px solid ${col}30">
-      <div class="card-top">
-        <div><div class="card-nct">${s.nctId}</div><div class="card-drug">${s.drug}</div></div>
-        <div style="flex-shrink:0">${mBadge(s.mutation)}</div>
+      <div class="ctop">
+        <div>
+          <div class="cnct">${s.nctId}</div>
+          <div class="cdrug">${s.drug}</div>
+        </div>
+        <div style="flex-shrink:0">${mBdg(s.target)}</div>
       </div>
-      <div class="card-ttl">${s.title}</div>
-      <div class="card-tags">
-        ${sBadge(s.status)} ${tBadge(s.trialType)} ${aBadge(s.arm)}
+      <div class="cttl">${s.title}</div>
+      <div class="ctags">
+        ${sBdg(s.status)} ${tBdg(s.trialType)} ${aBdg(s.armType)}
         ${sdD?`<span style="font-size:10px;color:#475569">${sdD}</span>`:""}
       </div>
-      <div class="card-foot">
+      <div class="cfoot">
         <span style="color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%">${s.sponsor}</span>
         <a href="https://clinicaltrials.gov/study/${s.nctId}" target="_blank"
           style="color:#38bdf8;font-size:10px;font-weight:600;flex-shrink:0">View ↗</a>
@@ -600,26 +701,20 @@ function buildCards(f){
   }).join("")}</div>`;
 }
 
-/* ── Event handlers ──────────────────────────────────── */
-function setM(v){fM=v;expId=null;render();}
-function setS(v){fS=v;render();}
-function setT(v){fT=v;render();}
-function setQ(v){fQ=v;render();}
-function setV(v){curView=v;render();}
-function setK(k){ sk===k?(sd=sd==="asc"?"desc":"asc"):(sk=k,sd="asc"); render(); }
-function toggleExp(id){
-  const was=expId===id;
-  expId=was?null:id;
+/* ══ Toggle row expand ══════════════════════════════ */
+function toggleExp(id) {
+  const was = expId===id;
+  expId = was ? null : id;
   render();
-  if(!was){
-    repaintExp();
-    const s=studies.find(x=>x.nctId===id);
-    if(s) loadRel(id,s.drug,s.mutation);
+  if (!was) {
+    repaintExpanded();
+    const s = studies.find(x=>x.nctId===id);
+    if (s) loadRelated(id, s.drug);
   }
 }
 
-/* ── Boot ────────────────────────────────────────────── */
-runAll();
+/* ══ Boot ═══════════════════════════════════════════ */
+loadStudies();
 </script>
 </body>
 </html>
